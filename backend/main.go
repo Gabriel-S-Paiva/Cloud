@@ -7,12 +7,11 @@ import (
 	"net/http"
 	"os"
 
+	"backend/handlers"
+	"backend/storage"
+
 	_ "modernc.org/sqlite"
 )
-
-func helloWorld(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World")
-}
 
 func databaseInit() {
 	db, err := sql.Open("sqlite", "./data.db")
@@ -21,7 +20,7 @@ func databaseInit() {
 	}
 	defer db.Close()
 
-	schema, err := os.ReadFile("../migration/001_init.sql")
+	schema, err := os.ReadFile("../migration/002_shares_changed.sql")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,10 +33,28 @@ func databaseInit() {
 }
 
 func main() {
-	//databaseInit()
+	_, err := os.Stat("./data.db")
+	if os.IsNotExist(err) {
+		databaseInit()
+	} else if err == nil {
+		fmt.Println("Trying to Load DB")
+	} else {
+		log.Fatal("Error: ", err)
+	}
 
-	http.HandleFunc("/hello", helloWorld)
+	db, err := sql.Open("sqlite", "./data.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
-	log.Println("Server Started on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	store := storage.NewStore(db)
+	userHandlers := handlers.NewUserHandlers(store)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /users", userHandlers.Register)
+	mux.HandleFunc("GET /users/me", userHandlers.GetMe)
+
+	log.Println("server starting on :8080")
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }
