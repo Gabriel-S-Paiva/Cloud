@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -25,21 +27,42 @@ type RegisterRequest struct {
 func (h *UserHandlers) Register(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		writeJSONError(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 	bytes, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		http.Error(w, "internal error", http.StatusInternalServerError)
+		writeJSONError(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	if err := h.store.CreateRequest(r.Context(), req.Username, string(bytes)); err != nil {
-		http.Error(w, "could not create request", http.StatusInternalServerError)
+	err = h.store.CreateRequest(r.Context(), req.Username, string(bytes))
+	if errors.Is(err, storage.ErrUsernameTaken) {
+		writeJSONError(w, "username already taken", http.StatusConflict)
+		return
+	}
+	if err != nil {
+		writeJSONError(w, "could not create request", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
 }
 
 func (h *UserHandlers) GetMe(w http.ResponseWriter, r *http.Request) {
-	// TODO: get current user id (from session — later), call h.store.GetUserByID, write JSON response
+	id := 1 //TODO: add JWT for the me id
+
+	user, err := h.store.GetUserByID(r.Context(), id)
+	if errors.Is(err, storage.ErrUserNotFound) {
+		writeJSONError(w, fmt.Sprintf("User %v not found", id), http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		writeJSONError(w, "Error Searching User", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Context-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		writeJSONError(w, "could not encode response", http.StatusInternalServerError)
+		return
+	}
 }

@@ -3,9 +3,13 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"errors"
 	"log"
+	"strings"
 )
+
+var ErrUsernameTaken = errors.New("Username already taken.")
+var ErrUserNotFound = errors.New("Username not found")
 
 type User struct {
 	Id        int
@@ -21,7 +25,7 @@ func (s *Store) GetUserByID(ctx context.Context, id int) (*User, error) {
 	switch {
 	case err == sql.ErrNoRows:
 		log.Printf("User %v not found", id)
-		return nil, nil
+		return nil, ErrUserNotFound
 	case err != nil:
 		return nil, err
 	default:
@@ -30,16 +34,11 @@ func (s *Store) GetUserByID(ctx context.Context, id int) (*User, error) {
 }
 
 func (s *Store) CreateRequest(ctx context.Context, username string, password string) error {
-	result, err := s.db.ExecContext(ctx, "INSERT INTO Requests (username, hashed_password) VALUES (?, ?)", username, password)
+	_, err := s.db.ExecContext(ctx, "INSERT INTO Requests (username, hashed_password) VALUES (?, ?)", username, password)
 	if err != nil {
-		return err
-	}
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rows != 1 {
-		err = fmt.Errorf("expected to affect 1 row, affected %v", rows)
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			return ErrUsernameTaken
+		}
 		return err
 	}
 	return nil
