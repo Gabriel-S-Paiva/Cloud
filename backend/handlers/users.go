@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -60,9 +61,48 @@ func (h *UserHandlers) GetMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Context-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		writeJSONError(w, "could not encode response", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *UserHandlers) AproveRequest(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		writeJSONError(w, "Error parsing id", http.StatusBadRequest)
+		return
+	}
+
+	err = h.store.AproveRequest(r.Context(), id)
+	if errors.Is(err, storage.ErrUsernameTaken) {
+		writeJSONError(w, "Username already taken", http.StatusConflict)
+		return
+	}
+	if err != nil {
+		writeJSONError(w, "Error aproving Request", http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *UserHandlers) RejectRequest(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		writeJSONError(w, fmt.Sprintf("Error parsing %v", id), http.StatusBadRequest)
+		return
+	}
+
+	err = h.store.RejectRequest(r.Context(), id)
+	if errors.Is(err, storage.ErrUpdatingRequest) {
+		writeJSONError(w, "Error Updating Request", http.StatusInternalServerError)
+		return
+	}
+	if err != nil {
+		writeJSONError(w, "Error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
