@@ -47,8 +47,14 @@ func (s *Store) CreateRequest(ctx context.Context, username string, password str
 }
 
 func (s *Store) AproveRequest(ctx context.Context, id int) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	var user User
-	err := s.db.QueryRowContext(ctx, "SELECT username, hashed_password FROM Requests WHERE Requests.id = ?", id).Scan(&user.Username, &user.Password)
+	err = tx.QueryRowContext(ctx, "SELECT username, hashed_password FROM Requests WHERE Requests.id = ?", id).Scan(&user.Username, &user.Password)
 	if err == sql.ErrNoRows {
 		return ErrUserNotFound
 	}
@@ -56,7 +62,7 @@ func (s *Store) AproveRequest(ctx context.Context, id int) error {
 		return err
 	}
 
-	_, err = s.db.ExecContext(ctx, "INSERT INTO Users (username, hashed_password) VALUES (?, ?)", &user.Username, &user.Password)
+	_, err = tx.ExecContext(ctx, "INSERT INTO Users (username, hashed_password) VALUES (?, ?)", user.Username, user.Password)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
 			return ErrUsernameTaken
@@ -64,11 +70,11 @@ func (s *Store) AproveRequest(ctx context.Context, id int) error {
 		return err
 	}
 
-	_, err = s.db.ExecContext(ctx, "DELETE FROM Requests WHERE Requests.id = ?", id)
+	_, err = tx.ExecContext(ctx, "DELETE FROM Requests WHERE Requests.id = ?", id)
 	if err != nil {
 		return err
 	}
-	return nil
+	return tx.Commit()
 }
 
 func (s *Store) RejectRequest(ctx context.Context, id int) error {
