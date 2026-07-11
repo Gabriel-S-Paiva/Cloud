@@ -3,14 +3,9 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"log"
 	"strings"
 )
-
-var ErrUsernameTaken = errors.New("Username already taken.")
-var ErrUserNotFound = errors.New("Username not found")
-var ErrUpdatingRequest = errors.New("Error Updating or User Already Rejected")
 
 type User struct {
 	Id        int

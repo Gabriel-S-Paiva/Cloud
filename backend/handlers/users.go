@@ -15,14 +15,13 @@ import (
 type UserHandlers struct {
 	store *storage.Store
 }
-
-func NewUserHandlers(store *storage.Store) *UserHandlers {
-	return &UserHandlers{store: store}
-}
-
 type RegisterRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+func NewUserHandlers(store *storage.Store) *UserHandlers {
+	return &UserHandlers{store: store}
 }
 
 func (h *UserHandlers) Register(w http.ResponseWriter, r *http.Request) {
