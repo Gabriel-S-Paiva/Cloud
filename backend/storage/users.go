@@ -15,6 +15,11 @@ type User struct {
 	Quota     int
 	QuotaUsed int
 }
+type Request struct {
+	Id       int
+	Username string
+	Status   string
+}
 
 func (s *Store) GetUserByID(ctx context.Context, id int) (*User, error) {
 	var user User
@@ -85,4 +90,27 @@ func (s *Store) RejectRequest(ctx context.Context, id int) error {
 		return ErrUpdatingRequest
 	}
 	return nil
+}
+
+func (s *Store) ListPendingRequests(ctx context.Context) ([]Request, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT id, username, status FROM Requests WHERE status = 'Pending'")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var requestList []Request
+	for rows.Next() {
+		var request Request
+		if err := rows.Scan(&request.Id, &request.Username, &request.Status); err != nil {
+			return nil, err
+		}
+		requestList = append(requestList, request)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return requestList, nil
 }

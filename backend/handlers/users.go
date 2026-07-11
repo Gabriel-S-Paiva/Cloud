@@ -105,3 +105,17 @@ func (h *UserHandlers) RejectRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *UserHandlers) ListPendingRequests(w http.ResponseWriter, r *http.Request) {
+	requestsList, err := h.store.ListPendingRequests(r.Context())
+	if err != nil {
+		writeJSONError(w, "Error Searching Table", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(requestsList); err != nil {
+		writeJSONError(w, "could not encode response", http.StatusInternalServerError)
+		return
+	}
+}
