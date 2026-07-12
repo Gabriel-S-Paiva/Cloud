@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"backend/handlers"
+	"backend/middlewares"
 	"backend/storage"
 
 	_ "modernc.org/sqlite"
@@ -51,14 +52,19 @@ func main() {
 	store := storage.NewStore(db)
 	userHandlers := handlers.NewUserHandlers(store)
 	authHandlers := handlers.NewAuthHandlers(store)
+	authMW := middlewares.NewAuthMiddlewares(store)
 
 	mux := http.NewServeMux()
+	// Open Endpoints
 	mux.HandleFunc("POST /users", userHandlers.Register)
-	mux.HandleFunc("GET /users/me", userHandlers.GetMe)
-	mux.HandleFunc("GET /users/requests", userHandlers.ListPendingRequests)
-	mux.HandleFunc("POST /users/requests/{id}/aprove", userHandlers.AproveRequest)
-	mux.HandleFunc("POST /users/requests/{id}/reject", userHandlers.RejectRequest)
 	mux.HandleFunc("POST /login", authHandlers.Login)
+	// Auth Endpoints
+	mux.HandleFunc("GET /users/me", authMW.RequireAuth(userHandlers.GetMe))
+	mux.HandleFunc("POST /logout", authHandlers.Logout)
+	// Admin Endpoints
+	mux.HandleFunc("GET /users/requests", authMW.RequireAuth(authMW.RequireAdmin(userHandlers.ListPendingRequests)))
+	mux.HandleFunc("POST /users/requests/{id}/aprove", authMW.RequireAuth(authMW.RequireAdmin(userHandlers.AproveRequest)))
+	mux.HandleFunc("POST /users/requests/{id}/reject", authMW.RequireAuth(authMW.RequireAdmin(userHandlers.RejectRequest)))
 
 	log.Println("server starting on :8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))

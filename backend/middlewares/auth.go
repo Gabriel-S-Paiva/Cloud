@@ -60,3 +60,8 @@ func (m *AuthMiddlewares) RequireAdmin(next http.HandlerFunc) http.HandlerFunc {
 		next(w, r)
 	}
 }
+
+func UserFromContext(ctx context.Context) (*storage.Session, bool) {
+	session, ok := ctx.Value(userContextKey).(*storage.Session)
+	return session, ok
+}

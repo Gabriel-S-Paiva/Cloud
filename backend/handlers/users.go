@@ -9,7 +9,9 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
+	"backend/middlewares"
 	"backend/storage"
+	"backend/utils"
 )
 
 type UserHandlers struct {
@@ -48,11 +50,15 @@ func (h *UserHandlers) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandlers) GetMe(w http.ResponseWriter, r *http.Request) {
-	id := 1 //TODO: add JWT for the me id
+	session, ok := middlewares.UserFromContext(r.Context())
+	if !ok {
+		utils.WriteJSONError(w, "not authenticated", http.StatusUnauthorized)
+		return
+	}
 
-	user, err := h.store.GetUserByID(r.Context(), id)
+	user, err := h.store.GetUserByID(r.Context(), session.UserId)
 	if errors.Is(err, storage.ErrUserNotFound) {
-		utils.WriteJSONError(w, fmt.Sprintf("User %v not found", id), http.StatusNotFound)
+		utils.WriteJSONError(w, fmt.Sprintf("User %v not found", session.UserId), http.StatusNotFound)
 		return
 	}
 	if err != nil {
