@@ -127,7 +127,7 @@ func (h *FolderHandler) GetFolderContents(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Header().Set("Context-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(folder); err != nil {
 		utils.WriteJSONError(w, "could not encode response", http.StatusInternalServerError)
 		return
