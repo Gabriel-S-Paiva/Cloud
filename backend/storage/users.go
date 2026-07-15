@@ -10,7 +10,7 @@ import (
 type User struct {
 	Id        int
 	Username  string
-	Password  string
+	Password  string `json:"-"`
 	Role      string
 	Quota     int
 	QuotaUsed int
