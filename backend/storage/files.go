@@ -30,7 +30,7 @@ func (s *Store) CreateFile(ctx context.Context, displayName string, ownedBy int,
 
 func (s *Store) GetFileById(ctx context.Context, id int) (*File, error) {
 	var file File
-	err := s.db.QueryRowContext(ctx, "SELECT id, display_name, owned_by, size, uploaded_at, last_modified, parent_folder WHERE id = ?", id).Scan(&file.Id, &file.DisplayName, &file.OwnedBy, &file.Size, &file.UploadedAt, &file.LastModified, &file.ParentFolder)
+	err := s.db.QueryRowContext(ctx, "SELECT id, display_name, owned_by, size, uploaded_at, last_modified, parent_folder FROM Files WHERE id = ?", id).Scan(&file.Id, &file.DisplayName, &file.OwnedBy, &file.Size, &file.UploadedAt, &file.LastModified, &file.ParentFolder)
 	if err == sql.ErrNoRows {
 		return nil, ErrFileNotFound
 	}
@@ -55,7 +55,7 @@ func (s *Store) UpdateFile(ctx context.Context, id int, newName *string, newPare
 			return err
 		}
 		if rows != 1 {
-			return ErrUpdatingFolder
+			return ErrUpdatingFile
 		}
 	}
 	if newName != nil {
@@ -68,7 +68,7 @@ func (s *Store) UpdateFile(ctx context.Context, id int, newName *string, newPare
 			return err
 		}
 		if rows != 1 {
-			return ErrUpdatingFolder
+			return ErrUpdatingFile
 		}
 	}
 	_, err := s.db.ExecContext(ctx, "UPDATE Files SET last_modified = ? WHERE id = ?", time.Now().Unix(), id)
@@ -88,10 +88,10 @@ func (s *Store) DeleteFile(ctx context.Context, id int) error {
 		return err
 	}
 	if rows == 0 {
-		return ErrFolderNotFound
+		return ErrFileNotFound
 	}
 	if rows != 1 {
-		return ErrFolderMismatch
+		return ErrFileMismatch
 	}
 	return nil
 }

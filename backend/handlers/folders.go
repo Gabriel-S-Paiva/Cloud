@@ -8,7 +8,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -76,19 +75,13 @@ func (h *FolderHandler) GetFolder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.folderOwnership(r.Context(), id, session.UserId)
+	folder, err := h.folderOwnership(r.Context(), id, session.UserId)
 	if errors.Is(err, storage.ErrForbidden) {
 		utils.WriteJSONError(w, "You do not own this folder", http.StatusForbidden)
 		return
 	}
 	if err != nil {
 		utils.WriteJSONError(w, "Something went wrong", http.StatusInternalServerError)
-		return
-	}
-
-	folder, err := h.store.GetFolderById(r.Context(), id)
-	if err != nil {
-		utils.WriteJSONError(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
 		return
 	}
 

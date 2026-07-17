@@ -75,7 +75,7 @@ func (h *FileHanlder) GetFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.fileOwnership(r.Context(), id, session.UserId)
+	file, err := h.fileOwnership(r.Context(), id, session.UserId)
 	if errors.Is(err, storage.ErrForbidden) {
 		utils.WriteJSONError(w, "You do not own this file", http.StatusForbidden)
 		return
@@ -85,13 +85,7 @@ func (h *FileHanlder) GetFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, err := h.store.GetFileById(r.Context(), id)
-	if err != nil {
-		utils.WriteJSONError(w, "Something went wrong", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Context-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(file); err != nil {
 		utils.WriteJSONError(w, "could not encode response", http.StatusInternalServerError)
 		return
