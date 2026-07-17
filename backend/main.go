@@ -53,6 +53,7 @@ func main() {
 	userHandlers := handlers.NewUserHandlers(store)
 	authHandlers := handlers.NewAuthHandlers(store)
 	foldHandlers := handlers.NewFolderHandlers(store)
+	fileHanlder := handlers.NewFileHandler(store)
 	authMW := middlewares.NewAuthMiddlewares(store)
 
 	mux := http.NewServeMux()
@@ -68,6 +69,12 @@ func main() {
 	mux.HandleFunc("GET /folders/{id}/content", authMW.RequireAuth(foldHandlers.GetFolderContents))
 	mux.HandleFunc("PATCH /folders/{id}", authMW.RequireAuth(foldHandlers.UpdateFolder))
 	mux.HandleFunc("DELETE /folders/{id}", authMW.RequireAuth(foldHandlers.DeleteFolder))
+
+	mux.HandleFunc("POST /files", authMW.RequireAuth(fileHanlder.CreateFile))
+	mux.HandleFunc("GET /files/{id}", authMW.RequireAuth(fileHanlder.GetFile))
+	// mux.HandleFunc("GET /files/{id}/content", authMW.RequireAuth(foldHandlers.GetFolderContents))
+	mux.HandleFunc("PATCH /files/{id}", authMW.RequireAuth(fileHanlder.UpdateFile))
+	mux.HandleFunc("DELETE /files/{id}", authMW.RequireAuth(fileHanlder.DeleteFile))
 	// Admin Endpoints
 	mux.HandleFunc("GET /users/requests", authMW.RequireAuth(authMW.RequireAdmin(userHandlers.ListPendingRequests)))
 	mux.HandleFunc("POST /users/requests/{id}/aprove", authMW.RequireAuth(authMW.RequireAdmin(userHandlers.AproveRequest)))
