@@ -121,3 +121,14 @@ func (s *Store) DeleteFile(ctx context.Context, id int) error {
 
 	return tx.Commit()
 }
+
+func (s *Store) FileOwnership(ctx context.Context, fileId int, userId int) (*File, error) {
+	file, err := s.GetFileById(ctx, fileId)
+	if err != nil {
+		return nil, err
+	}
+	if file.OwnedBy != userId {
+		return nil, ErrForbidden
+	}
+	return file, nil
+}

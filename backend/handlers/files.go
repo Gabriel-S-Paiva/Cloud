@@ -4,7 +4,6 @@ import (
 	"backend/middlewares"
 	"backend/storage"
 	"backend/utils"
-	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -26,17 +25,6 @@ type UpdateFileRequest struct {
 
 func NewFileHandler(store *storage.Store) *FileHanlder {
 	return &FileHanlder{store: store}
-}
-
-func (h *FileHanlder) fileOwnership(ctx context.Context, fileId int, userId int) (*storage.File, error) {
-	file, err := h.store.GetFileById(ctx, fileId)
-	if err != nil {
-		return nil, err
-	}
-	if file.OwnedBy != userId {
-		return nil, storage.ErrForbidden
-	}
-	return file, nil
 }
 
 func (h *FileHanlder) CreateFile(w http.ResponseWriter, r *http.Request) {
@@ -75,7 +63,7 @@ func (h *FileHanlder) GetFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, err := h.fileOwnership(r.Context(), id, session.UserId)
+	file, err := h.store.FileOwnership(r.Context(), id, session.UserId)
 	if errors.Is(err, storage.ErrForbidden) {
 		utils.WriteJSONError(w, "You do not own this file", http.StatusForbidden)
 		return
@@ -114,7 +102,7 @@ func (h *FileHanlder) UpdateFile(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSONError(w, "Not Authenticated", http.StatusUnauthorized)
 		return
 	}
-	_, err = h.fileOwnership(r.Context(), id, session.UserId)
+	_, err = h.store.FileOwnership(r.Context(), id, session.UserId)
 	if errors.Is(err, storage.ErrForbidden) {
 		utils.WriteJSONError(w, "You do not own this file", http.StatusForbidden)
 		return
@@ -142,7 +130,7 @@ func (h *FileHanlder) DeleteFile(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSONError(w, "Not Authenticated", http.StatusUnauthorized)
 		return
 	}
-	_, err = h.fileOwnership(r.Context(), id, session.UserId)
+	_, err = h.store.FileOwnership(r.Context(), id, session.UserId)
 	if errors.Is(err, storage.ErrForbidden) {
 		utils.WriteJSONError(w, "You do not own this file", http.StatusForbidden)
 		return

@@ -125,3 +125,14 @@ func (s *Store) DeleteFolder(ctx context.Context, id int) error {
 	}
 	return nil
 }
+
+func (s *Store) FolderOwnership(ctx context.Context, folderId int, userId int) (*Folder, error) {
+	folder, err := s.GetFolderById(ctx, folderId)
+	if err != nil {
+		return nil, err
+	}
+	if folder.OwnedBy != userId {
+		return nil, ErrForbidden
+	}
+	return folder, nil
+}
