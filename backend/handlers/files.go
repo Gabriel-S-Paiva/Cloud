@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"strconv"
 )
@@ -17,6 +18,8 @@ type FileHanlder struct {
 type CreateFileRequest struct {
 	DisplayName  string `json:"displayName"`
 	ParentFolder *int64 `json:"parentFolder"`
+	Size         int    `json:"size"`
+	ContentType  string `json:"contentType"`
 }
 type UpdateFileRequest struct {
 	DisplayName  *string `json:"displayName"`
@@ -42,12 +45,42 @@ func (h *FileHanlder) CreateFile(w http.ResponseWriter, r *http.Request) {
 	if newFile.ParentFolder != nil {
 		parent = sql.NullInt64{Int64: *newFile.ParentFolder, Valid: true}
 	}
-	_, err := h.store.CreateFile(r.Context(), newFile.DisplayName, session.UserId, parent, 0)
+	_, err := h.store.CreateFileUploadIntent(r.Context(), newFile.DisplayName, session.UserId, parent, newFile.Size, newFile.ContentType)
 	if err != nil {
 		utils.WriteJSONError(w, "Error Creating Folder", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *FileHanlder) UploadChunk(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		utils.WriteJSONError(w, "Error parsing id", http.StatusBadRequest)
+		return
+	}
+	session, ok := middlewares.UserFromContext(r.Context())
+	if !ok {
+		utils.WriteJSONError(w, "Not Authenticated", http.StatusUnauthorized)
+		return
+	}
+	if _, err := h.store.FileOwnership(r.Context(), id, session.UserId); err != nil {
+		utils.WriteJSONError(w, "You do not own this file", http.StatusForbidden)
+		return
+	}
+
+	written, err := h.store.AppendFileChunk(r.Context(), id, r.Body)
+	if errors.Is(err, storage.ErrFileNotUploading) {
+		utils.WriteJSONError(w, "file is not accepting uploads", http.StatusConflict)
+		return
+	}
+	if err != nil {
+		utils.WriteJSONError(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]int64{"bytesWritten": written})
 }
 
 func (h *FileHanlder) GetFile(w http.ResponseWriter, r *http.Request) {
@@ -78,6 +111,37 @@ func (h *FileHanlder) GetFile(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSONError(w, "could not encode response", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *FileHanlder) GetFileContent(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		utils.WriteJSONError(w, "Error parsing id", http.StatusBadRequest)
+		return
+	}
+	session, ok := middlewares.UserFromContext(r.Context())
+	if !ok {
+		utils.WriteJSONError(w, "Not Authenticated", http.StatusUnauthorized)
+		return
+	}
+	if _, err := h.store.FileOwnership(r.Context(), id, session.UserId); err != nil {
+		utils.WriteJSONError(w, "You do not own this file", http.StatusForbidden)
+		return
+	}
+
+	file, content, err := h.store.GetFileContent(r.Context(), id)
+	if err != nil {
+		utils.WriteJSONError(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	defer content.Close()
+
+	w.Header().Set("Content-Type", file.ContentType)
+	if r.URL.Query().Get("download") == "true" {
+		w.Header().Set("Content-Disposition", "attachment; filename=\""+file.DisplayName+"\"")
+	}
+
+	io.Copy(w, content)
 }
 
 func (h *FileHanlder) UpdateFile(w http.ResponseWriter, r *http.Request) {

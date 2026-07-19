@@ -21,7 +21,7 @@ func databaseInit() {
 	}
 	defer db.Close()
 
-	schema, err := os.ReadFile("../migration/003_auth.sql")
+	schema, err := os.ReadFile("../migration/004_file_upload.sql")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,6 +54,7 @@ func main() {
 	authHandlers := handlers.NewAuthHandlers(store)
 	foldHandlers := handlers.NewFolderHandlers(store)
 	fileHanlder := handlers.NewFileHandler(store)
+	shareHandler := handlers.NewShareHandlers(store)
 	authMW := middlewares.NewAuthMiddlewares(store)
 
 	mux := http.NewServeMux()
@@ -71,10 +72,17 @@ func main() {
 	mux.HandleFunc("DELETE /folders/{id}", authMW.RequireAuth(foldHandlers.DeleteFolder))
 
 	mux.HandleFunc("POST /files", authMW.RequireAuth(fileHanlder.CreateFile))
+	mux.HandleFunc("POST /files/{id}/chunk", authMW.RequireAuth(fileHanlder.UploadChunk))
 	mux.HandleFunc("GET /files/{id}", authMW.RequireAuth(fileHanlder.GetFile))
 	// mux.HandleFunc("GET /files/{id}/content", authMW.RequireAuth(foldHandlers.GetFolderContents))
 	mux.HandleFunc("PATCH /files/{id}", authMW.RequireAuth(fileHanlder.UpdateFile))
 	mux.HandleFunc("DELETE /files/{id}", authMW.RequireAuth(fileHanlder.DeleteFile))
+
+	mux.HandleFunc("POST /shares", authMW.RequireAuth(shareHandler.CreateShare))
+	mux.HandleFunc("GET /shares/incoming", authMW.RequireAuth(shareHandler.ViewIncomingShares))
+	mux.HandleFunc("GET /shares/outgoing", authMW.RequireAuth(shareHandler.ViewOutgoingShares))
+	mux.HandleFunc("PATCH /shares/{id}", authMW.RequireAuth(shareHandler.UpdatePermission))
+	mux.HandleFunc("DELETE /shares/{id}", authMW.RequireAuth(shareHandler.DeleteShare))
 	// Admin Endpoints
 	mux.HandleFunc("GET /users/requests", authMW.RequireAuth(authMW.RequireAdmin(userHandlers.ListPendingRequests)))
 	mux.HandleFunc("POST /users/requests/{id}/aprove", authMW.RequireAuth(authMW.RequireAdmin(userHandlers.AproveRequest)))

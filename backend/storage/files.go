@@ -3,20 +3,29 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"io"
+	"os"
+	"path/filepath"
+	"strconv"
 	"time"
 )
 
+const storageDir = "storage"
+
 type File struct {
-	Id           int
-	DisplayName  string
-	OwnedBy      int
-	Size         int
-	UploadedAt   int
-	LastModified int
-	ParentFolder sql.NullInt64
+	Id            int
+	DisplayName   string
+	OwnedBy       int
+	Size          int
+	BytesReceived int
+	Status        string
+	ContentType   string
+	UploadedAt    int
+	LastModified  int
+	ParentFolder  sql.NullInt64
 }
 
-func (s *Store) CreateFile(ctx context.Context, displayName string, ownedBy int, parentFolder sql.NullInt64, size int) (int64, error) {
+func (s *Store) CreateFileUploadIntent(ctx context.Context, displayName string, ownedBy int, parentFolder sql.NullInt64, size int, contentType string) (int64, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return 0, err
@@ -33,20 +42,69 @@ func (s *Store) CreateFile(ctx context.Context, displayName string, ownedBy int,
 		return 0, ErrQuotaExceeded
 	}
 
-	result, err := tx.ExecContext(ctx, "INSERT INTO Files (display_name, owned_by, size, parent_folder) VALUES (?,?,?,?)", displayName, ownedBy, size, parentFolder)
+	result, err := tx.ExecContext(ctx, "INSERT INTO Files (display_name, owned_by, size, parent_folder, content_type, status, bytes_received) VALUES (?,?,?,?,?,'Uploading',0)", displayName, ownedBy, size, parentFolder, contentType)
 	if err != nil {
 		return 0, err
 	}
 	id, err := result.LastInsertId()
-	_, err = tx.ExecContext(ctx, "UPDATE Users SET quota_used VALUES quota_used + ? WHERE id = ?", size, ownedBy)
-	tx.Commit()
+	if err != nil {
+		return 0, err
+	}
+	_, err = tx.ExecContext(ctx, "UPDATE Users SET quota_used = quota_used + ? WHERE id = ?", size, ownedBy)
+	if err != nil {
+		return 0, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
 
 	return id, nil
 }
 
+func (s *Store) AppendFileChunk(ctx context.Context, fileId int, chunk io.Reader) (int64, error) {
+	file, err := s.GetFileById(ctx, fileId)
+	if err != nil {
+		return 0, err
+	}
+	if file.Status != "Uploading" {
+		return 0, ErrFileNotUploading
+	}
+
+	if err := os.MkdirAll(storageDir, 0755); err != nil {
+		return 0, err
+	}
+	path := filepath.Join(storageDir, strconv.Itoa(fileId))
+
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return 0, err
+	}
+	defer f.Close()
+
+	written, err := io.Copy(f, chunk)
+	if err != nil {
+		return 0, err
+	}
+
+	newTotal := file.BytesReceived + int(written)
+	status := "Uploading"
+	if newTotal >= file.Size {
+		status = "Complete"
+	}
+
+	_, err = s.db.ExecContext(ctx, "UPDATE Files SET bytes_received = ?, status = ? WHERE id = ?", newTotal, status, fileId)
+	if err != nil {
+		return 0, err
+	}
+
+	return written, nil
+}
+
 func (s *Store) GetFileById(ctx context.Context, id int) (*File, error) {
 	var file File
-	err := s.db.QueryRowContext(ctx, "SELECT id, display_name, owned_by, size, uploaded_at, last_modified, parent_folder FROM Files WHERE id = ?", id).Scan(&file.Id, &file.DisplayName, &file.OwnedBy, &file.Size, &file.UploadedAt, &file.LastModified, &file.ParentFolder)
+	err := s.db.QueryRowContext(ctx, "SELECT id, display_name, owned_by, size, bytes_received, status, content_type, uploaded_at, last_modified, parent_folder FROM Files WHERE id = ?", id).
+		Scan(&file.Id, &file.DisplayName, &file.OwnedBy, &file.Size, &file.BytesReceived, &file.Status, &file.ContentType, &file.UploadedAt, &file.LastModified, &file.ParentFolder)
 	if err == sql.ErrNoRows {
 		return nil, ErrFileNotFound
 	}
@@ -56,8 +114,22 @@ func (s *Store) GetFileById(ctx context.Context, id int) (*File, error) {
 	return &file, nil
 }
 
-func (s *Store) GetFile(ctx context.Context, id int) {
+func (s *Store) GetFileContent(ctx context.Context, id int) (*File, io.ReadCloser, error) {
+	file, err := s.GetFileById(ctx, id)
+	if err != nil {
+		return nil, nil, err
+	}
+	if file.Status != "Complete" {
+		return nil, nil, ErrFileNotComplete
+	}
 
+	path := filepath.Join(storageDir, strconv.Itoa(id))
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return file, f, nil
 }
 
 func (s *Store) UpdateFile(ctx context.Context, id int, newName *string, newParent *sql.NullInt64) error {
