@@ -74,7 +74,7 @@ func main() {
 	mux.HandleFunc("POST /files", authMW.RequireAuth(fileHanlder.CreateFile))
 	mux.HandleFunc("POST /files/{id}/chunk", authMW.RequireAuth(fileHanlder.UploadChunk))
 	mux.HandleFunc("GET /files/{id}", authMW.RequireAuth(fileHanlder.GetFile))
-	// mux.HandleFunc("GET /files/{id}/content", authMW.RequireAuth(foldHandlers.GetFolderContents))
+	mux.HandleFunc("GET /files/{id}/content", authMW.RequireAuth(fileHanlder.GetFileContent))
 	mux.HandleFunc("PATCH /files/{id}", authMW.RequireAuth(fileHanlder.UpdateFile))
 	mux.HandleFunc("DELETE /files/{id}", authMW.RequireAuth(fileHanlder.DeleteFile))
 
@@ -89,5 +89,5 @@ func main() {
 	mux.HandleFunc("POST /users/requests/{id}/reject", authMW.RequireAuth(authMW.RequireAdmin(userHandlers.RejectRequest)))
 
 	log.Println("server starting on :8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Fatal(http.ListenAndServe(":8080", middlewares.CORS(mux)))
 }
