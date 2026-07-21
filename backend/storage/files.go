@@ -17,7 +17,7 @@ type File struct {
 	DisplayName   string    `json:"displayName"`
 	OwnedBy       int       `json:"ownedBy"`
 	Size          int       `json:"size"`
-	BytesReceived int       `json:"bytesRecieved"`
+	BytesReceived int       `json:"bytesReceived"`
 	Status        string    `json:"status"`
 	ContentType   string    `json:"contentType"`
 	UploadedAt    int       `json:"uploadedAt"`
