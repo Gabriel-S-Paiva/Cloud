@@ -6,11 +6,11 @@ import (
 )
 
 type Share struct {
-	Id         int
-	File       sql.NullInt64
-	Folder     sql.NullInt64
-	SharedWith int
-	Permission string
+	Id         int       `json:"id"`
+	File       NullInt64 `json:"file"`
+	Folder     NullInt64 `json:"folder"`
+	SharedWith int       `json:"sharedWith"`
+	Permission string    `json:"permission"`
 }
 
 func (s *Store) CreateShare(ctx context.Context, file sql.NullInt64, folder sql.NullInt64, sharedWith int, permission string) error {

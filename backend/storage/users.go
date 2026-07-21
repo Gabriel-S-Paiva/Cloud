@@ -8,12 +8,12 @@ import (
 )
 
 type User struct {
-	Id        int
-	Username  string
+	Id        int    `json:"id"`
+	Username  string `json:"username"`
 	Password  string `json:"-"`
-	Role      string
-	Quota     int
-	QuotaUsed int
+	Role      string `json:"role"`
+	Quota     int    `json:"quota"`
+	QuotaUsed int    `json:"quotaUsed"`
 }
 type Request struct {
 	Id       int

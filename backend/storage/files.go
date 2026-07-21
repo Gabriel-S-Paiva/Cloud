@@ -13,16 +13,16 @@ import (
 const storageDir = "storage"
 
 type File struct {
-	Id            int
-	DisplayName   string
-	OwnedBy       int
-	Size          int
-	BytesReceived int
-	Status        string
-	ContentType   string
-	UploadedAt    int
-	LastModified  int
-	ParentFolder  sql.NullInt64
+	Id            int       `json:"id"`
+	DisplayName   string    `json:"displayName"`
+	OwnedBy       int       `json:"ownedBy"`
+	Size          int       `json:"size"`
+	BytesReceived int       `json:"bytesRecieved"`
+	Status        string    `json:"status"`
+	ContentType   string    `json:"contentType"`
+	UploadedAt    int       `json:"uploadedAt"`
+	LastModified  int       `json:"lastModified"`
+	ParentFolder  NullInt64 `json:"parentFolder"`
 }
 
 func (s *Store) CreateFileUploadIntent(ctx context.Context, displayName string, ownedBy int, parentFolder sql.NullInt64, size int, contentType string) (int64, error) {

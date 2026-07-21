@@ -6,14 +6,14 @@ import (
 )
 
 type Folder struct {
-	Id           int
-	DisplayName  string
-	OwnedBy      int
-	ParentFolder sql.NullInt64
+	Id           int       `json:"id"`
+	DisplayName  string    `json:"displayName"`
+	OwnedBy      int       `json:"ownedBy"`
+	ParentFolder NullInt64 `json:"parentFolder"`
 }
 type FolderContents struct {
-	Folders []Folder
-	Files   []File
+	Folders []Folder `json:"folders"`
+	Files   []File   `json:"files"`
 }
 
 func (s *Store) CreateFolder(ctx context.Context, displayName string, ownedBy int, parentFolder sql.NullInt64) (int64, error) {
