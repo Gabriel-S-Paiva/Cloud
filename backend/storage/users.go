@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"log"
 	"strings"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
@@ -126,4 +128,39 @@ func (s *Store) ListPendingRequests(ctx context.Context) ([]Request, error) {
 	}
 
 	return requestList, nil
+}
+
+func (s *Store) SeedAdmin(ctx context.Context, username, password string) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	var userId int64
+	err = tx.QueryRowContext(ctx, "INSERT INTO Users (username, hashed_password, role) VALUES (?, ?, 'Admin') RETURNING id", username, string(hashed)).Scan(&userId)
+	if err != nil {
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			return nil // admin already exists — not an error, just skip
+		}
+		return err
+	}
+
+	var rootFolderId int64
+	err = tx.QueryRowContext(ctx, "INSERT INTO Folders (display_name, owned_by) VALUES ('root', ?) RETURNING id", userId).Scan(&rootFolderId)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, "UPDATE Users SET root_folder = ? WHERE id = ?", rootFolderId, userId)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -10,6 +11,8 @@ import (
 	"backend/handlers"
 	"backend/middlewares"
 	"backend/storage"
+
+	"github.com/joho/godotenv"
 
 	_ "modernc.org/sqlite"
 )
@@ -34,6 +37,10 @@ func databaseInit() {
 }
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("no .env file found, relying on system environment")
+	}
+
 	_, err := os.Stat("./data.db")
 	if os.IsNotExist(err) {
 		databaseInit()
@@ -50,6 +57,14 @@ func main() {
 	defer db.Close()
 
 	store := storage.NewStore(db)
+	adminUsername := os.Getenv("ADMIN_USERNAME")
+	adminPassword := os.Getenv("ADMIN_PASSWORD")
+	if adminUsername != "" && adminPassword != "" {
+		if err := store.SeedAdmin(context.Background(), adminUsername, adminPassword); err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	userHandlers := handlers.NewUserHandlers(store)
 	authHandlers := handlers.NewAuthHandlers(store)
 	foldHandlers := handlers.NewFolderHandlers(store)
