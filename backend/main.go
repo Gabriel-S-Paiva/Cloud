@@ -21,7 +21,7 @@ func databaseInit() {
 	}
 	defer db.Close()
 
-	schema, err := os.ReadFile("../migration/004_file_upload.sql")
+	schema, err := os.ReadFile("../migration/005_user_root.sql")
 	if err != nil {
 		log.Fatal(err)
 	}

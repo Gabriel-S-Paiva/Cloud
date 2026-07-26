@@ -8,12 +8,13 @@ import (
 )
 
 type User struct {
-	Id        int    `json:"id"`
-	Username  string `json:"username"`
-	Password  string `json:"-"`
-	Role      string `json:"role"`
-	Quota     int    `json:"quota"`
-	QuotaUsed int    `json:"quotaUsed"`
+	Id           int    `json:"id"`
+	Username     string `json:"username"`
+	Password     string `json:"-"`
+	Role         string `json:"role"`
+	Quota        int    `json:"quota"`
+	QuotaUsed    int    `json:"quotaUsed"`
+	RootFolderId int    `json:"rootFolderId"`
 }
 type Request struct {
 	Id       int
@@ -23,7 +24,7 @@ type Request struct {
 
 func (s *Store) GetUserByID(ctx context.Context, id int) (*User, error) {
 	var user User
-	err := s.db.QueryRowContext(ctx, "SELECT id, username, role, quota, quota_used FROM Users WHERE Users.id = ?", id).Scan(&user.Id, &user.Username, &user.Role, &user.Quota, &user.QuotaUsed)
+	err := s.db.QueryRowContext(ctx, "SELECT id, username, role, quota, quota_used, root_folder FROM Users WHERE Users.id = ?", id).Scan(&user.Id, &user.Username, &user.Role, &user.Quota, &user.QuotaUsed, &user.RootFolderId)
 	switch {
 	case err == sql.ErrNoRows:
 		log.Printf("User %v not found", id)
@@ -62,11 +63,22 @@ func (s *Store) AproveRequest(ctx context.Context, id int) error {
 		return err
 	}
 
-	_, err = tx.ExecContext(ctx, "INSERT INTO Users (username, hashed_password) VALUES (?, ?)", user.Username, user.Password)
+	err = tx.QueryRowContext(ctx, "INSERT INTO Users (username, hashed_password) VALUES (?, ?) RETURNING id", user.Username, user.Password).Scan(&user.Id)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
 			return ErrUsernameTaken
 		}
+		return err
+	}
+
+	var rootFolderId int64
+	err = tx.QueryRowContext(ctx, "INSERT INTO Folder (display_name, owned_by) VALUES ('root',?) RETURNING id", user.Id).Scan(rootFolderId)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, "UPDATE Users SET root_folder = ? WHERE id = ?", rootFolderId, user.Id)
+	if err != nil {
 		return err
 	}
 
