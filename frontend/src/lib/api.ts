@@ -56,8 +56,8 @@ export const endpoints = {
         request<User>('/users/me', {
             method: 'GET'
         }),
-    createFolder: (displayName: string, parentFolder: number|null) => 
-        request<void>('/folders', {
+    createFolder: (displayName: string, parentFolder: number|null = null) => 
+        request<{ id: number }>('/folders', {
             method: 'POST',
             body: JSON.stringify({ displayName, parentFolder })
         }),
@@ -69,7 +69,7 @@ export const endpoints = {
         request<FolderContents>(`/folders/${id}/content`, {
             method: 'GET'
         }),
-    updateFolder: (id: number, displayName: string|null, parentFolder: number|null) =>
+    updateFolder: (id: number, displayName: string|null = null, parentFolder: number|null = null) =>
         request<void>(`/folders/${id}`, {
             method: 'PATCH',
             body: JSON.stringify({ displayName, parentFolder })
@@ -78,8 +78,8 @@ export const endpoints = {
         request<void>(`/folders/${id}`, {
             method:'DELETE'
         }),
-    createFile: (displayName: string, parentFolder: number|null, size: number, contentType: string) => 
-        request<void>('/files', {
+    createFile: (displayName: string, parentFolder: number|null = null, size: number, contentType: string) => 
+        request<{ id: number }>('/files', {
             method:'POST',
             body: JSON.stringify({ displayName, parentFolder, size, contentType})
         }),
@@ -100,7 +100,7 @@ export const endpoints = {
             if (!response.ok) throw new Error('Failed to fetch file content');
             return response.blob();
         },
-    updateFile: (id: number, displayName: string|null, parentFolder: number|null) =>
+    updateFile: (id: number, displayName: string|null = null, parentFolder: number|null = null) =>
         request<void>(`/files/${id}`, {
             method: 'PATCH',
             body: JSON.stringify({displayName, parentFolder})
@@ -109,8 +109,8 @@ export const endpoints = {
         request<void>(`/files/${id}`, {
             method: 'DELETE'
         }),
-    createShare: (fileId: number|null, folderId: number|null, sharedWith: number, permission: 'Edit'|'View') =>
-        request<void>('/shares', {
+    createShare: (fileId: number|null, folderId: number|null = null, sharedWith: number, permission: 'Edit'|'View') =>
+        request<{ id: number }>('/shares', {
             method: 'POST',
             body: JSON.stringify({ fileId, folderId, sharedWith, permission })
         }),
@@ -136,7 +136,7 @@ export const endpoints = {
             method:'GET'
         }),
     aproveRequest: (id: number) =>
-        request<void>(`/users/requests/${id}/aprove`, {
+        request<{ id: number }>(`/users/requests/${id}/aprove`, {
             method:'POST'
         }),
     rejectRequest: (id: number) =>
