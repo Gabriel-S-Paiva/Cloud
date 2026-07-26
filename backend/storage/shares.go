@@ -13,11 +13,12 @@ type Share struct {
 	Permission string    `json:"permission"`
 }
 
-func (s *Store) CreateShare(ctx context.Context, file sql.NullInt64, folder sql.NullInt64, sharedWith int, permission string) error {
-	if _, err := s.db.ExecContext(ctx, "INSERT INTO Shares (file, folder, shared_with, permissions) VALUES (?,?,?,?)", file, folder, sharedWith, permission); err != nil {
-		return err
+func (s *Store) CreateShare(ctx context.Context, file sql.NullInt64, folder sql.NullInt64, sharedWith int, permission string) (int, error) {
+	var shareId int
+	if err := s.db.QueryRowContext(ctx, "INSERT INTO Shares (file, folder, shared_with, permissions) VALUES (?,?,?,?) RETURNING id", file, folder, sharedWith, permission).Scan(shareId); err != nil {
+		return 0, err
 	}
-	return nil
+	return shareId, nil
 }
 
 func (s *Store) GetShareById(ctx context.Context, id int) (*Share, error) {

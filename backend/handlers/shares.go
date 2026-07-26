@@ -62,11 +62,14 @@ func (h *ShareHandler) CreateShare(w http.ResponseWriter, r *http.Request) {
 		}
 		folder = sql.NullInt64{Int64: *newShare.FolderId, Valid: true}
 	}
-	if err := h.store.CreateShare(r.Context(), file, folder, newShare.SharedWith, newShare.Permission); err != nil {
+	id, err := h.store.CreateShare(r.Context(), file, folder, newShare.SharedWith, newShare.Permission)
+	if err != nil {
 		utils.WriteJSONError(w, "Something Went Wrong", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]int{"id": id})
 }
 
 // Shared With Me

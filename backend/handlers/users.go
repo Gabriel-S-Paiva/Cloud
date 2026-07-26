@@ -37,7 +37,7 @@ func (h *UserHandlers) Register(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSONError(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	err = h.store.CreateRequest(r.Context(), req.Username, string(bytes))
+	id, err := h.store.CreateRequest(r.Context(), req.Username, string(bytes))
 	if errors.Is(err, storage.ErrUsernameTaken) {
 		utils.WriteJSONError(w, "username already taken", http.StatusConflict)
 		return
@@ -46,7 +46,9 @@ func (h *UserHandlers) Register(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSONError(w, "could not create request", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]int{"id": id})
 }
 
 func (h *UserHandlers) GetMe(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +82,7 @@ func (h *UserHandlers) AproveRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.store.AproveRequest(r.Context(), id)
+	userId, err := h.store.AproveRequest(r.Context(), id)
 	if errors.Is(err, storage.ErrUsernameTaken) {
 		utils.WriteJSONError(w, "Username already taken", http.StatusConflict)
 		return
@@ -90,7 +92,9 @@ func (h *UserHandlers) AproveRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]int{"id": userId})
 }
 
 func (h *UserHandlers) RejectRequest(w http.ResponseWriter, r *http.Request) {

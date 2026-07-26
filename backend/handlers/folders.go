@@ -42,12 +42,14 @@ func (h *FolderHandler) CreateFolder(w http.ResponseWriter, r *http.Request) {
 	if newFolder.ParentFolder != nil {
 		parent = sql.NullInt64{Int64: *newFolder.ParentFolder, Valid: true}
 	}
-	_, err := h.store.CreateFolder(r.Context(), newFolder.DisplayName, session.UserId, parent)
+	id, err := h.store.CreateFolder(r.Context(), newFolder.DisplayName, session.UserId, parent)
 	if err != nil {
 		utils.WriteJSONError(w, "Error Creating Folder", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]int64{"id": id})
 }
 
 func (h *FolderHandler) GetFolder(w http.ResponseWriter, r *http.Request) {

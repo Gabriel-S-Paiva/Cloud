@@ -45,12 +45,14 @@ func (h *FileHanlder) CreateFile(w http.ResponseWriter, r *http.Request) {
 	if newFile.ParentFolder != nil {
 		parent = sql.NullInt64{Int64: *newFile.ParentFolder, Valid: true}
 	}
-	_, err := h.store.CreateFileUploadIntent(r.Context(), newFile.DisplayName, session.UserId, parent, newFile.Size, newFile.ContentType)
+	id, err := h.store.CreateFileUploadIntent(r.Context(), newFile.DisplayName, session.UserId, parent, newFile.Size, newFile.ContentType)
 	if err != nil {
 		utils.WriteJSONError(w, "Error Creating Folder", http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]int64{"id": id})
 }
 
 func (h *FileHanlder) UploadChunk(w http.ResponseWriter, r *http.Request) {

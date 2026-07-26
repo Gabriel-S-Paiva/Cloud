@@ -36,57 +36,58 @@ func (s *Store) GetUserByID(ctx context.Context, id int) (*User, error) {
 	}
 }
 
-func (s *Store) CreateRequest(ctx context.Context, username string, password string) error {
-	_, err := s.db.ExecContext(ctx, "INSERT INTO Requests (username, hashed_password) VALUES (?, ?)", username, password)
+func (s *Store) CreateRequest(ctx context.Context, username string, password string) (int, error) {
+	var userId int
+	err := s.db.QueryRowContext(ctx, "INSERT INTO Requests (username, hashed_password) VALUES (?, ?) RETURNING id", username, password).Scan(userId)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-			return ErrUsernameTaken
+			return 0, ErrUsernameTaken
 		}
-		return err
+		return 0, err
 	}
-	return nil
+	return userId, nil
 }
 
-func (s *Store) AproveRequest(ctx context.Context, id int) error {
+func (s *Store) AproveRequest(ctx context.Context, id int) (int, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer tx.Rollback()
 
 	var user User
 	err = tx.QueryRowContext(ctx, "SELECT username, hashed_password FROM Requests WHERE Requests.id = ?", id).Scan(&user.Username, &user.Password)
 	if err == sql.ErrNoRows {
-		return ErrUserNotFound
+		return 0, ErrUserNotFound
 	}
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	err = tx.QueryRowContext(ctx, "INSERT INTO Users (username, hashed_password) VALUES (?, ?) RETURNING id", user.Username, user.Password).Scan(&user.Id)
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-			return ErrUsernameTaken
+			return 0, ErrUsernameTaken
 		}
-		return err
+		return 0, err
 	}
 
 	var rootFolderId int64
 	err = tx.QueryRowContext(ctx, "INSERT INTO Folder (display_name, owned_by) VALUES ('root',?) RETURNING id", user.Id).Scan(rootFolderId)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	_, err = tx.ExecContext(ctx, "UPDATE Users SET root_folder = ? WHERE id = ?", rootFolderId, user.Id)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	_, err = tx.ExecContext(ctx, "DELETE FROM Requests WHERE Requests.id = ?", id)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return tx.Commit()
+	return user.Id, tx.Commit()
 }
 
 func (s *Store) RejectRequest(ctx context.Context, id int) error {
