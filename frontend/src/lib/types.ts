@@ -4,6 +4,7 @@ interface User {
     role: 'User' | 'Admin'
     quota: number
     quotaUsed: number
+    rootFolderId: number
 }
 
 interface Folder {
