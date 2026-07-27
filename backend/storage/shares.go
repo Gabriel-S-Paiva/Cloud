@@ -13,9 +13,24 @@ type Share struct {
 	Permission string    `json:"permission"`
 }
 
+type SharedFolder struct {
+	Folder
+	ShareId int `json:"shareId"`
+}
+
+type SharedFile struct {
+	File
+	ShareId int `json:"shareId"`
+}
+
+type SharedContents struct {
+	Folders []SharedFolder `json:"folders"`
+	Files   []SharedFile   `json:"files"`
+}
+
 func (s *Store) CreateShare(ctx context.Context, file sql.NullInt64, folder sql.NullInt64, sharedWith int, permission string) (int, error) {
 	var shareId int
-	if err := s.db.QueryRowContext(ctx, "INSERT INTO Shares (file, folder, shared_with, permissions) VALUES (?,?,?,?) RETURNING id", file, folder, sharedWith, permission).Scan(shareId); err != nil {
+	if err := s.db.QueryRowContext(ctx, "INSERT INTO Shares (file, folder, shared_with, permissions) VALUES (?,?,?,?) RETURNING id", file, folder, sharedWith, permission).Scan(&shareId); err != nil {
 		return 0, err
 	}
 	return shareId, nil
@@ -34,89 +49,89 @@ func (s *Store) GetShareById(ctx context.Context, id int) (*Share, error) {
 }
 
 // Shared With Me
-func (s *Store) GetIncomingShares(ctx context.Context, userId int) (*FolderContents, error) {
-	var folderContents FolderContents
+func (s *Store) GetIncomingShares(ctx context.Context, userId int) (*SharedContents, error) {
+	var contents SharedContents
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	fileRows, err := tx.QueryContext(ctx, "SELECT id, display_name, owned_by, size, uploaded_at, last_modified, parent_folder FROM Files AS f JOIN Shares AS s ON f.id = s.file WHERE s.shared_with = ?", userId)
+	fileRows, err := tx.QueryContext(ctx, "SELECT f.id, f.display_name, f.owned_by, f.size, f.bytes_received, f.status, f.content_type, f.uploaded_at, f.last_modified, f.parent_folder, s.id FROM Files AS f JOIN Shares AS s ON f.id = s.file WHERE s.shared_with = ?", userId)
 	if err != nil {
 		return nil, err
 	}
 	defer fileRows.Close()
 	for fileRows.Next() {
-		var file File
-		if err := fileRows.Scan(&file.Id, &file.DisplayName, &file.OwnedBy, &file.Size, &file.UploadedAt, &file.LastModified, &file.ParentFolder); err != nil {
+		var sf SharedFile
+		if err := fileRows.Scan(&sf.Id, &sf.DisplayName, &sf.OwnedBy, &sf.Size, &sf.BytesReceived, &sf.Status, &sf.ContentType, &sf.UploadedAt, &sf.LastModified, &sf.ParentFolder, &sf.ShareId); err != nil {
 			return nil, err
 		}
-		folderContents.Files = append(folderContents.Files, file)
+		contents.Files = append(contents.Files, sf)
 	}
 	if err := fileRows.Err(); err != nil {
 		return nil, err
 	}
 
-	folderRows, err := tx.QueryContext(ctx, "SELECT id, display_name, owned_by, parent_folder FROM Folders AS f JOIN Shares AS s ON f.id = s.folder WHERE s.shared_with = ?", userId)
+	folderRows, err := tx.QueryContext(ctx, "SELECT f.id, f.display_name, f.owned_by, f.parent_folder, s.id FROM Folders AS f JOIN Shares AS s ON f.id = s.folder WHERE s.shared_with = ?", userId)
 	if err != nil {
 		return nil, err
 	}
 	defer folderRows.Close()
 	for folderRows.Next() {
-		var folder Folder
-		if err := folderRows.Scan(&folder.Id, &folder.DisplayName, &folder.OwnedBy, &folder.ParentFolder); err != nil {
+		var sf SharedFolder
+		if err := folderRows.Scan(&sf.Id, &sf.DisplayName, &sf.OwnedBy, &sf.ParentFolder, &sf.ShareId); err != nil {
 			return nil, err
 		}
-		folderContents.Folders = append(folderContents.Folders, folder)
+		contents.Folders = append(contents.Folders, sf)
 	}
 	if err := folderRows.Err(); err != nil {
 		return nil, err
 	}
-	return &folderContents, nil
+	return &contents, nil
 }
 
 // Shared Files
-func (s *Store) GetOutgoingShares(ctx context.Context, userId int) (*FolderContents, error) {
-	var folderContents FolderContents
+func (s *Store) GetOutgoingShares(ctx context.Context, userId int) (*SharedContents, error) {
+	var contents SharedContents
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	fileRows, err := tx.QueryContext(ctx, "SELECT id, display_name, owned_by, size, uploaded_at, last_modified, parent_folder FROM Files AS f JOIN Shares AS s ON f.id = s.file WHERE f.owned_by = ?", userId)
+	fileRows, err := tx.QueryContext(ctx, "SELECT f.id, f.display_name, f.owned_by, f.size, f.bytes_received, f.status, f.content_type, f.uploaded_at, f.last_modified, f.parent_folder, s.id FROM Files AS f JOIN Shares AS s ON f.id = s.file WHERE f.owned_by = ?", userId)
 	if err != nil {
 		return nil, err
 	}
 	defer fileRows.Close()
 	for fileRows.Next() {
-		var file File
-		if err := fileRows.Scan(&file.Id, &file.DisplayName, &file.OwnedBy, &file.Size, &file.UploadedAt, &file.LastModified, &file.ParentFolder); err != nil {
+		var sf SharedFile
+		if err := fileRows.Scan(&sf.Id, &sf.DisplayName, &sf.OwnedBy, &sf.Size, &sf.BytesReceived, &sf.Status, &sf.ContentType, &sf.UploadedAt, &sf.LastModified, &sf.ParentFolder, &sf.ShareId); err != nil {
 			return nil, err
 		}
-		folderContents.Files = append(folderContents.Files, file)
+		contents.Files = append(contents.Files, sf)
 	}
 	if err := fileRows.Err(); err != nil {
 		return nil, err
 	}
 
-	folderRows, err := tx.QueryContext(ctx, "SELECT id, display_name, owned_by, parent_folder FROM Folders AS f JOIN Shares AS s ON f.id = s.folder WHERE f.owned_by = ?", userId)
+	folderRows, err := tx.QueryContext(ctx, "SELECT f.id, f.display_name, f.owned_by, f.parent_folder, s.id FROM Folders AS f JOIN Shares AS s ON f.id = s.folder WHERE f.owned_by = ?", userId)
 	if err != nil {
 		return nil, err
 	}
 	defer folderRows.Close()
 	for folderRows.Next() {
-		var folder Folder
-		if err := folderRows.Scan(&folder.Id, &folder.DisplayName, &folder.OwnedBy, &folder.ParentFolder); err != nil {
+		var sf SharedFolder
+		if err := folderRows.Scan(&sf.Id, &sf.DisplayName, &sf.OwnedBy, &sf.ParentFolder, &sf.ShareId); err != nil {
 			return nil, err
 		}
-		folderContents.Folders = append(folderContents.Folders, folder)
+		contents.Folders = append(contents.Folders, sf)
 	}
 	if err := folderRows.Err(); err != nil {
 		return nil, err
 	}
-	return &folderContents, nil
+	return &contents, nil
 }
 
 func (s *Store) UpdatePermission(ctx context.Context, shareId int, newPermission string) error {

@@ -177,18 +177,25 @@ func (h *ShareHandler) DeleteShare(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSONError(w, "Error Fetching Share", http.StatusInternalServerError)
 		return
 	}
+
+	isRecipient := share.SharedWith == session.UserId
+	isOwner := false
 	if share.File.Valid {
-		if _, err := h.store.FileOwnership(r.Context(), int(share.File.Int64), session.UserId); err != nil {
-			utils.WriteJSONError(w, "you don't own this share", http.StatusForbidden)
-			return
+		if _, err := h.store.FileOwnership(r.Context(), int(share.File.Int64), session.UserId); err == nil {
+			isOwner = true
 		}
 	}
 	if share.Folder.Valid {
-		if _, err := h.store.FolderOwnership(r.Context(), int(share.Folder.Int64), session.UserId); err != nil {
-			utils.WriteJSONError(w, "you don't own this share", http.StatusForbidden)
-			return
+		if _, err := h.store.FolderOwnership(r.Context(), int(share.Folder.Int64), session.UserId); err == nil {
+			isOwner = true
 		}
 	}
+
+	if !isOwner && !isRecipient {
+		utils.WriteJSONError(w, "you don't have access to this share", http.StatusForbidden)
+		return
+	}
+
 	err = h.store.DeleteShare(r.Context(), id)
 	if err != nil {
 		utils.WriteJSONError(w, "Something went wrong", http.StatusInternalServerError)
