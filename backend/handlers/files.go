@@ -66,8 +66,13 @@ func (h *FileHanlder) UploadChunk(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSONError(w, "Not Authenticated", http.StatusUnauthorized)
 		return
 	}
-	if _, _, err := h.store.FileAccess(r.Context(), id, session.UserId); err != nil {
-		utils.WriteJSONError(w, "You do not own this file", http.StatusForbidden)
+	_, permission, err := h.store.FileAccess(r.Context(), id, session.UserId)
+	if err != nil {
+		utils.WriteJSONError(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	if permission != "Owner" {
+		utils.WriteJSONError(w, "only the owner can upload to this file", http.StatusForbidden)
 		return
 	}
 
