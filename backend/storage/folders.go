@@ -136,3 +136,26 @@ func (s *Store) FolderOwnership(ctx context.Context, folderId int, userId int) (
 	}
 	return folder, nil
 }
+
+func (s *Store) FolderAcess(ctx context.Context, folderId, userId int) (*Folder, string, error) {
+	var folder Folder
+	var permission sql.NullString
+	err := s.db.QueryRowContext(ctx,
+		`SELECT f.id, f.display_name, f.owned_by, f.parent_folder, s.permissions
+		 FROM Folders f
+		 LEFT JOIN Shares s ON s.folder = f.id AND s.shared_with = ?
+		 WHERE f.id = ? AND (f.owned_by = ? OR s.shared_with = ?)`,
+		userId, folderId, userId, userId).
+		Scan(&folder.Id, &folder.DisplayName, &folder.OwnedBy, &folder.ParentFolder, &permission)
+	if err == sql.ErrNoRows {
+		return nil, "", ErrFileNotFound
+	}
+	if err != nil {
+		return nil, "", err
+	}
+
+	if folder.OwnedBy == userId {
+		return &folder, "Owner", nil
+	}
+	return &folder, permission.String, nil
+}

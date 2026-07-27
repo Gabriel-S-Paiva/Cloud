@@ -204,3 +204,26 @@ func (s *Store) FileOwnership(ctx context.Context, fileId int, userId int) (*Fil
 	}
 	return file, nil
 }
+
+func (s *Store) FileAccess(ctx context.Context, fileId, userId int) (*File, string, error) {
+	var file File
+	var permission sql.NullString
+	err := s.db.QueryRowContext(ctx,
+		`SELECT f.id, f.display_name, f.owned_by, f.size, f.bytes_received, f.status, f.content_type, f.uploaded_at, f.last_modified, f.parent_folder, s.permissions
+		 FROM Files f
+		 LEFT JOIN Shares s ON s.file = f.id AND s.shared_with = ?
+		 WHERE f.id = ? AND (f.owned_by = ? OR s.shared_with = ?)`,
+		userId, fileId, userId, userId).
+		Scan(&file.Id, &file.DisplayName, &file.OwnedBy, &file.Size, &file.BytesReceived, &file.Status, &file.ContentType, &file.UploadedAt, &file.LastModified, &file.ParentFolder, &permission)
+	if err == sql.ErrNoRows {
+		return nil, "", ErrFileNotFound
+	}
+	if err != nil {
+		return nil, "", err
+	}
+
+	if file.OwnedBy == userId {
+		return &file, "Owner", nil
+	}
+	return &file, permission.String, nil
+}
