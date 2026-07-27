@@ -65,7 +65,7 @@ func (h *FolderHandler) GetFolder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	folder, err := h.store.FolderOwnership(r.Context(), id, session.UserId)
+	folder, _, err := h.store.FolderAccess(r.Context(), id, session.UserId)
 	if errors.Is(err, storage.ErrForbidden) {
 		utils.WriteJSONError(w, "You do not own this folder", http.StatusForbidden)
 		return
@@ -75,7 +75,7 @@ func (h *FolderHandler) GetFolder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Context-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(folder); err != nil {
 		utils.WriteJSONError(w, "could not encode response", http.StatusInternalServerError)
 		return
@@ -94,7 +94,7 @@ func (h *FolderHandler) GetFolderContents(w http.ResponseWriter, r *http.Request
 		utils.WriteJSONError(w, "Not Authenticated", http.StatusUnauthorized)
 		return
 	}
-	_, err = h.store.FolderOwnership(r.Context(), id, session.UserId)
+	_, _, err = h.store.FolderAccess(r.Context(), id, session.UserId)
 	if errors.Is(err, storage.ErrForbidden) {
 		utils.WriteJSONError(w, "You do not own this folder", http.StatusForbidden)
 		return
@@ -139,13 +139,17 @@ func (h *FolderHandler) UpdateFolder(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSONError(w, "Not Authenticated", http.StatusUnauthorized)
 		return
 	}
-	_, err = h.store.FolderOwnership(r.Context(), id, session.UserId)
+	_, permission, err := h.store.FolderAccess(r.Context(), id, session.UserId)
 	if errors.Is(err, storage.ErrForbidden) {
 		utils.WriteJSONError(w, "You do not own this folder", http.StatusForbidden)
 		return
 	}
 	if err != nil {
 		utils.WriteJSONError(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+	if permission != "Owner" && permission != "Edit" {
+		utils.WriteJSONError(w, "you do not have permission to edit this folder", http.StatusForbidden)
 		return
 	}
 
@@ -167,13 +171,17 @@ func (h *FolderHandler) DeleteFolder(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSONError(w, "Not Authenticated", http.StatusUnauthorized)
 		return
 	}
-	_, err = h.store.FolderOwnership(r.Context(), id, session.UserId)
+	_, permission, err := h.store.FolderAccess(r.Context(), id, session.UserId)
 	if errors.Is(err, storage.ErrForbidden) {
 		utils.WriteJSONError(w, "You do not own this folder", http.StatusForbidden)
 		return
 	}
 	if err != nil {
 		utils.WriteJSONError(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+	if permission != "Owner" && permission != "Edit" {
+		utils.WriteJSONError(w, "you do not have permission to delete this folder", http.StatusForbidden)
 		return
 	}
 

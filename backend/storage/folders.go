@@ -137,7 +137,7 @@ func (s *Store) FolderOwnership(ctx context.Context, folderId int, userId int) (
 	return folder, nil
 }
 
-func (s *Store) FolderAcess(ctx context.Context, folderId, userId int) (*Folder, string, error) {
+func (s *Store) FolderAccess(ctx context.Context, folderId, userId int) (*Folder, string, error) {
 	var folder Folder
 	var permission sql.NullString
 	err := s.db.QueryRowContext(ctx,

@@ -66,7 +66,7 @@ func (h *FileHanlder) UploadChunk(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSONError(w, "Not Authenticated", http.StatusUnauthorized)
 		return
 	}
-	if _, err := h.store.FileOwnership(r.Context(), id, session.UserId); err != nil {
+	if _, _, err := h.store.FileAccess(r.Context(), id, session.UserId); err != nil {
 		utils.WriteJSONError(w, "You do not own this file", http.StatusForbidden)
 		return
 	}
@@ -98,7 +98,7 @@ func (h *FileHanlder) GetFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, err := h.store.FileOwnership(r.Context(), id, session.UserId)
+	file, _, err := h.store.FileAccess(r.Context(), id, session.UserId)
 	if errors.Is(err, storage.ErrForbidden) {
 		utils.WriteJSONError(w, "You do not own this file", http.StatusForbidden)
 		return
@@ -126,7 +126,7 @@ func (h *FileHanlder) GetFileContent(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSONError(w, "Not Authenticated", http.StatusUnauthorized)
 		return
 	}
-	if _, err := h.store.FileOwnership(r.Context(), id, session.UserId); err != nil {
+	if _, _, err := h.store.FileAccess(r.Context(), id, session.UserId); err != nil {
 		utils.WriteJSONError(w, "You do not own this file", http.StatusForbidden)
 		return
 	}
@@ -168,13 +168,17 @@ func (h *FileHanlder) UpdateFile(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSONError(w, "Not Authenticated", http.StatusUnauthorized)
 		return
 	}
-	_, err = h.store.FileOwnership(r.Context(), id, session.UserId)
+	_, permission, err := h.store.FileAccess(r.Context(), id, session.UserId)
 	if errors.Is(err, storage.ErrForbidden) {
 		utils.WriteJSONError(w, "You do not own this file", http.StatusForbidden)
 		return
 	}
 	if err != nil {
 		utils.WriteJSONError(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+	if permission != "Owner" && permission != "Edit" {
+		utils.WriteJSONError(w, "you do not have permission to edit this file", http.StatusForbidden)
 		return
 	}
 
@@ -196,13 +200,17 @@ func (h *FileHanlder) DeleteFile(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSONError(w, "Not Authenticated", http.StatusUnauthorized)
 		return
 	}
-	_, err = h.store.FileOwnership(r.Context(), id, session.UserId)
+	_, permission, err := h.store.FileAccess(r.Context(), id, session.UserId)
 	if errors.Is(err, storage.ErrForbidden) {
 		utils.WriteJSONError(w, "You do not own this file", http.StatusForbidden)
 		return
 	}
 	if err != nil {
 		utils.WriteJSONError(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+	if permission != "Owner" && permission != "Edit" {
+		utils.WriteJSONError(w, "you do not have permission to delete this file", http.StatusForbidden)
 		return
 	}
 
