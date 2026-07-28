@@ -67,4 +67,10 @@ interface PathSegment {
   displayName: string;
 }
 
-export type { User, Folder, CloudFile, FolderContents, RegisterRequest, PathSegment, SharedContents, SharedFile, SharedFolder, UserSummary }
+interface ToastItem {
+    id: string
+    message: string
+    durationMs: number
+}
+
+export type { User, Folder, CloudFile, FolderContents, RegisterRequest, PathSegment, SharedContents, SharedFile, SharedFolder, UserSummary, ToastItem }
