@@ -15,12 +15,18 @@ type Share struct {
 
 type SharedFolder struct {
 	Folder
-	ShareId int `json:"shareId"`
+	ShareId         int    `json:"shareId"`
+	SharedWith      string `json:"sharedWith"`
+	OwnedByUsername string `json:"ownedByUsername"`
+	Permissions     string `json:"permissions"`
 }
 
 type SharedFile struct {
 	File
-	ShareId int `json:"shareId"`
+	ShareId         int    `json:"shareId"`
+	SharedWith      string `json:"sharedWith"`
+	OwnedByUsername string `json:"ownedByUsername"`
+	Permissions     string `json:"permissions"`
 }
 
 type SharedContents struct {
@@ -57,14 +63,19 @@ func (s *Store) GetIncomingShares(ctx context.Context, userId int) (*SharedConte
 	}
 	defer tx.Rollback()
 
-	fileRows, err := tx.QueryContext(ctx, "SELECT f.id, f.display_name, f.owned_by, f.size, f.bytes_received, f.status, f.content_type, f.uploaded_at, f.last_modified, f.parent_folder, s.id FROM Files AS f JOIN Shares AS s ON f.id = s.file WHERE s.shared_with = ?", userId)
+	fileRows, err := tx.QueryContext(ctx, `SELECT f.id, f.display_name, f.owned_by, f.size, f.bytes_received, f.status, f.content_type, f.uploaded_at, f.last_modified, f.parent_folder, s.id, s.permissions, r.username, owner.username
+											FROM Files AS f
+											JOIN Shares AS s ON f.id = s.file
+											JOIN Users AS r ON s.shared_with = r.id
+											JOIN Users AS owner ON f.owned_by = owner.id
+											WHERE s.shared_with = ?`, userId)
 	if err != nil {
 		return nil, err
 	}
 	defer fileRows.Close()
 	for fileRows.Next() {
 		var sf SharedFile
-		if err := fileRows.Scan(&sf.Id, &sf.DisplayName, &sf.OwnedBy, &sf.Size, &sf.BytesReceived, &sf.Status, &sf.ContentType, &sf.UploadedAt, &sf.LastModified, &sf.ParentFolder, &sf.ShareId); err != nil {
+		if err := fileRows.Scan(&sf.Id, &sf.DisplayName, &sf.OwnedBy, &sf.Size, &sf.BytesReceived, &sf.Status, &sf.ContentType, &sf.UploadedAt, &sf.LastModified, &sf.ParentFolder, &sf.ShareId, &sf.Permissions, &sf.SharedWith, &sf.OwnedByUsername); err != nil {
 			return nil, err
 		}
 		contents.Files = append(contents.Files, sf)
@@ -73,14 +84,19 @@ func (s *Store) GetIncomingShares(ctx context.Context, userId int) (*SharedConte
 		return nil, err
 	}
 
-	folderRows, err := tx.QueryContext(ctx, "SELECT f.id, f.display_name, f.owned_by, f.parent_folder, s.id FROM Folders AS f JOIN Shares AS s ON f.id = s.folder WHERE s.shared_with = ?", userId)
+	folderRows, err := tx.QueryContext(ctx, `SELECT f.id, f.display_name, f.owned_by, f.parent_folder, s.id, s.permissions, r.username, owner.username
+												FROM Folders AS f
+												JOIN Shares AS s ON f.id = s.folder
+												JOIN Users AS r ON s.shared_with = r.id
+												JOIN Users AS owner ON f.owned_by = owner.id
+												WHERE s.shared_with = ?`, userId)
 	if err != nil {
 		return nil, err
 	}
 	defer folderRows.Close()
 	for folderRows.Next() {
 		var sf SharedFolder
-		if err := folderRows.Scan(&sf.Id, &sf.DisplayName, &sf.OwnedBy, &sf.ParentFolder, &sf.ShareId); err != nil {
+		if err := folderRows.Scan(&sf.Id, &sf.DisplayName, &sf.OwnedBy, &sf.ParentFolder, &sf.ShareId, &sf.Permissions, &sf.SharedWith, &sf.OwnedByUsername); err != nil {
 			return nil, err
 		}
 		contents.Folders = append(contents.Folders, sf)
@@ -100,14 +116,19 @@ func (s *Store) GetOutgoingShares(ctx context.Context, userId int) (*SharedConte
 	}
 	defer tx.Rollback()
 
-	fileRows, err := tx.QueryContext(ctx, "SELECT f.id, f.display_name, f.owned_by, f.size, f.bytes_received, f.status, f.content_type, f.uploaded_at, f.last_modified, f.parent_folder, s.id FROM Files AS f JOIN Shares AS s ON f.id = s.file WHERE f.owned_by = ?", userId)
+	fileRows, err := tx.QueryContext(ctx, `SELECT f.id, f.display_name, f.owned_by, f.size, f.bytes_received, f.status, f.content_type, f.uploaded_at, f.last_modified, f.parent_folder, s.id, s.permissions, r.username, owner.username
+											FROM Files AS f
+											JOIN Shares AS s ON f.id = s.file
+											JOIN Users AS r ON s.shared_with = r.id
+											JOIN Users AS owner ON f.owned_by = owner.id
+											WHERE f.owned_by = ?`, userId)
 	if err != nil {
 		return nil, err
 	}
 	defer fileRows.Close()
 	for fileRows.Next() {
 		var sf SharedFile
-		if err := fileRows.Scan(&sf.Id, &sf.DisplayName, &sf.OwnedBy, &sf.Size, &sf.BytesReceived, &sf.Status, &sf.ContentType, &sf.UploadedAt, &sf.LastModified, &sf.ParentFolder, &sf.ShareId); err != nil {
+		if err := fileRows.Scan(&sf.Id, &sf.DisplayName, &sf.OwnedBy, &sf.Size, &sf.BytesReceived, &sf.Status, &sf.ContentType, &sf.UploadedAt, &sf.LastModified, &sf.ParentFolder, &sf.ShareId, &sf.Permissions, &sf.SharedWith, &sf.OwnedByUsername); err != nil {
 			return nil, err
 		}
 		contents.Files = append(contents.Files, sf)
@@ -116,14 +137,19 @@ func (s *Store) GetOutgoingShares(ctx context.Context, userId int) (*SharedConte
 		return nil, err
 	}
 
-	folderRows, err := tx.QueryContext(ctx, "SELECT f.id, f.display_name, f.owned_by, f.parent_folder, s.id FROM Folders AS f JOIN Shares AS s ON f.id = s.folder WHERE f.owned_by = ?", userId)
+	folderRows, err := tx.QueryContext(ctx, `SELECT f.id, f.display_name, f.owned_by, f.parent_folder, s.id, s.permissions r.username, owner.username
+												FROM Folders AS f
+												JOIN Shares AS s ON f.id = s.folder
+												JOIN Users AS r ON r.id = s.shared_with
+												JOIN Users AS owner ON f.owned_by = owner.id
+												WHERE f.owned_by = ?`, userId)
 	if err != nil {
 		return nil, err
 	}
 	defer folderRows.Close()
 	for folderRows.Next() {
 		var sf SharedFolder
-		if err := folderRows.Scan(&sf.Id, &sf.DisplayName, &sf.OwnedBy, &sf.ParentFolder, &sf.ShareId); err != nil {
+		if err := folderRows.Scan(&sf.Id, &sf.DisplayName, &sf.OwnedBy, &sf.ParentFolder, &sf.ShareId, &sf.Permissions, &sf.SharedWith, &sf.OwnedByUsername); err != nil {
 			return nil, err
 		}
 		contents.Folders = append(contents.Folders, sf)
