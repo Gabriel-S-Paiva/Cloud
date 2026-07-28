@@ -5,6 +5,7 @@
     import { navigation } from '$lib/stores/navigation.svelte';
 	import type { FolderContents } from '$lib/types';
 	import { onMount } from 'svelte';
+    import {page} from '$app/stores'
 
     // ERROR
     let fetchErr = $state<string | null>(null);
@@ -19,6 +20,13 @@
     let uploadProgress = $state<{ uploaded: number; total: number } | null>(null);
 
     onMount(async () => {
+        const urlSegments = $page.params.path?.split('/').filter(Boolean) ?? [];
+
+        if (urlSegments.length > 0 && navigation.path.length === 0) {
+            goto('/home');
+            return;
+        }
+
         try{
             let folderId: number = navigation.currentFolderId ?? auth.user!.rootFolderId
             folderContents = await endpoints.getFolderContent(folderId)

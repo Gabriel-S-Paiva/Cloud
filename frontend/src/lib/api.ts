@@ -1,5 +1,5 @@
 import { goto } from '$app/navigation';
-import type { User, Folder, CloudFile, FolderContents, RegisterRequest } from '$lib/types';
+import type { User, Folder, CloudFile, FolderContents, RegisterRequest, SharedContents } from '$lib/types';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -115,11 +115,11 @@ export const endpoints = {
             body: JSON.stringify({ fileId, folderId, sharedWith, permission })
         }),
     getShareIncoming: () => 
-        request<FolderContents>('/shares/incoming', {
+        request<SharedContents>('/shares/incoming', {
             method: 'GET'
         }),
     getShareOutgoing: () =>
-        request<FolderContents>('/shares/outgoing', {
+        request<SharedContents>('/shares/outgoing', {
             method: 'GET'
         }),
     updateShare: (id: number, permission: 'Edit'|'View') => 

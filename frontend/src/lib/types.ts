@@ -14,6 +14,13 @@ interface Folder {
     parentFolder: number|null
 }
 
+interface SharedFolder extends Folder {
+    shareId: number
+    sharedWith: string
+    ownedByUsername: string
+    permissions: string
+}
+
 interface CloudFile {
     id: number
     displayName: string
@@ -27,9 +34,21 @@ interface CloudFile {
     parentFolder: number|null
 }
 
+interface SharedFile extends CloudFile {
+    shareId: number
+    sharedWith: string
+    ownedByUsername: string
+    permissions: string
+}
+
 interface FolderContents {
     folders: Folder[]
     files: CloudFile[]
+}
+
+interface SharedContents {
+    folders: SharedFolder[]
+    files: SharedFile[]
 }
 
 interface RegisterRequest {
@@ -43,4 +62,4 @@ interface PathSegment {
   displayName: string;
 }
 
-export type { User, Folder, CloudFile, FolderContents, RegisterRequest, PathSegment}
+export type { User, Folder, CloudFile, FolderContents, RegisterRequest, PathSegment, SharedContents, SharedFile, SharedFolder }
