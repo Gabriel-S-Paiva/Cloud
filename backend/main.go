@@ -78,6 +78,7 @@ func main() {
 	mux.HandleFunc("POST /login", authHandlers.Login)
 	// Auth Endpoints
 	mux.HandleFunc("GET /users/me", authMW.RequireAuth(userHandlers.GetMe))
+	mux.HandleFunc("GET /users", authMW.RequireAuth(userHandlers.ListSharableUsers))
 	mux.HandleFunc("POST /logout", authHandlers.Logout)
 
 	mux.HandleFunc("POST /folders", authMW.RequireAuth(foldHandlers.CreateFolder))
@@ -100,6 +101,7 @@ func main() {
 	mux.HandleFunc("DELETE /shares/{id}", authMW.RequireAuth(shareHandler.DeleteShare))
 	// Admin Endpoints
 	mux.HandleFunc("GET /users/requests", authMW.RequireAuth(authMW.RequireAdmin(userHandlers.ListPendingRequests)))
+	mux.HandleFunc("GET /users", authMW.RequireAuth(authMW.RequireAdmin(userHandlers.ListUser)))
 	mux.HandleFunc("POST /users/requests/{id}/aprove", authMW.RequireAuth(authMW.RequireAdmin(userHandlers.AproveRequest)))
 	mux.HandleFunc("POST /users/requests/{id}/reject", authMW.RequireAuth(authMW.RequireAdmin(userHandlers.RejectRequest)))
 

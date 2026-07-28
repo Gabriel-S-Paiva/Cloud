@@ -129,3 +129,37 @@ func (h *UserHandlers) ListPendingRequests(w http.ResponseWriter, r *http.Reques
 		return
 	}
 }
+
+func (h *UserHandlers) ListUser(w http.ResponseWriter, r *http.Request) {
+	userList, err := h.store.GetUsers(r.Context())
+	if err != nil {
+		utils.WriteJSONError(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(userList); err != nil {
+		utils.WriteJSONError(w, "could not encode response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *UserHandlers) ListSharableUsers(w http.ResponseWriter, r *http.Request) {
+	session, ok := middlewares.UserFromContext(r.Context())
+	if !ok {
+		utils.WriteJSONError(w, "not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	userList, err := h.store.GetSharableUsers(r.Context(), session.UserId)
+	if err != nil {
+		utils.WriteJSONError(w, "Something went Wrong", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(userList); err != nil {
+		utils.WriteJSONError(w, "could not encode response", http.StatusInternalServerError)
+		return
+	}
+}

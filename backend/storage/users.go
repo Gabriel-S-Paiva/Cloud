@@ -18,6 +18,10 @@ type User struct {
 	QuotaUsed    int    `json:"quotaUsed"`
 	RootFolderId int    `json:"rootFolderId"`
 }
+type UserSummary struct {
+	Id       int    `json:"id"`
+	Username string `json:"username"`
+}
 type Request struct {
 	Id       int
 	Username string
@@ -128,6 +132,52 @@ func (s *Store) ListPendingRequests(ctx context.Context) ([]Request, error) {
 	}
 
 	return requestList, nil
+}
+
+func (s *Store) GetUsers(ctx context.Context) ([]User, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT id, username, role, quota, quota_used, root_folder From Users")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var userList []User
+	for rows.Next() {
+		var user User
+		if err := rows.Scan(&user.Id, &user.Username, &user.Role, &user.Quota, &user.QuotaUsed, &user.RootFolderId); err != nil {
+			return nil, err
+		}
+		userList = append(userList, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return userList, nil
+}
+
+func (s *Store) GetSharableUsers(ctx context.Context, userId int) ([]UserSummary, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT id, username From Users WHERE id != ?", userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var userList []UserSummary
+	for rows.Next() {
+		var user UserSummary
+		if err := rows.Scan(&user.Id, &user.Username); err != nil {
+			return nil, err
+		}
+		userList = append(userList, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return userList, nil
 }
 
 func (s *Store) SeedAdmin(ctx context.Context, username, password string) error {
