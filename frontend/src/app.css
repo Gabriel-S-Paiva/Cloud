@@ -1,0 +1,32 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+
+:root {
+  --surface: oklch(98% 0.01 90);
+  --surface-raised: oklch(100% 0 0);
+  --border: oklch(90% 0.01 90);
+  --text: oklch(20% 0.01 90);
+  --text-muted: oklch(50% 0.01 90);
+  --accent: oklch(60% 0.15 250);
+  --danger: oklch(55% 0.2 25);
+}
+
+[data-theme="dark"] {
+  --surface: oklch(20% 0.01 90);
+  --surface-raised: oklch(25% 0.01 90);
+  --border: oklch(35% 0.01 90);
+  --text: oklch(95% 0.01 90);
+  --text-muted: oklch(65% 0.01 90);
+  --accent: oklch(70% 0.15 250);
+  --danger: oklch(65% 0.2 25);
+}
+
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+}
