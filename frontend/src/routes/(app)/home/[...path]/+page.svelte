@@ -3,7 +3,7 @@
 	import { endpoints } from '$lib/api';
 	import { auth } from '$lib/stores/auth.svelte';
     import { navigation } from '$lib/stores/navigation.svelte';
-	import type { FolderContents } from '$lib/types';
+	import type { UserSummary,  FolderContents } from '$lib/types';
 	import { onMount } from 'svelte';
     import {page} from '$app/stores'
 
@@ -19,6 +19,11 @@
     let selectedFiles = $state<FileList | null>(null)
     let uploadProgress = $state<{ uploaded: number; total: number } | null>(null);
 
+    // SHARE
+    let users = $state<UserSummary[] | null>(null)
+    let shareSelections = $state<Record<number, { target: number | null; permission: 'Edit' | 'View' }>>({});
+    
+
     onMount(async () => {
         const urlSegments = $page.params.path?.split('/').filter(Boolean) ?? [];
 
@@ -30,6 +35,10 @@
         try{
             let folderId: number = navigation.currentFolderId ?? auth.user!.rootFolderId
             folderContents = await endpoints.getFolderContent(folderId)
+            users = await endpoints.getSharableUsers()
+            for (const item of [...folderContents.files, ...folderContents.folders]) {
+                shareSelections[item.id] = { target: null, permission: 'View' };
+            }
         } catch(err) {
             fetchErr = err instanceof Error ? err.message : 'Folder Fecth Failed';
         }
@@ -130,6 +139,41 @@
             fetchErr = err instanceof Error ? err.message : 'Rename failed';
         }
     };
+
+    function getSelection(id: number) {
+        if (!shareSelections[id]) {
+            shareSelections[id] = { target: null, permission: 'View' };
+        }
+        return shareSelections[id];
+    }
+
+    const shareFile = async (id: number) => {
+        const sel = shareSelections[id];
+        if (!sel?.target) return;
+        try {
+            await endpoints.createShare(id, null, sel.target, sel.permission);
+        } catch (err) {
+            fetchErr = err instanceof Error ? err.message : 'Share failed';
+        }
+    };
+
+    const shareFolder = async (id: number) => {
+        const sel = shareSelections[id];
+        if (!sel?.target) return;
+        try {
+            await endpoints.createShare(null, id, sel.target, sel.permission);
+        } catch (err) {
+            fetchErr = err instanceof Error ? err.message : 'Share failed';
+        }
+    };
+
+    $effect(() => {
+        if (folderContents) {
+            for (const item of [...folderContents.files, ...folderContents.folders]) {
+                if (!shareSelections[item.id]) shareSelections[item.id] = { target: null, permission: 'View' };
+            }
+        }
+        });
 </script>
 
 <div>
@@ -144,11 +188,35 @@
         <button type="button" onclick={() => deleteFile(file.id)}>Delete</button>
         <input bind:value={file.displayName} />
         <button type="button" onclick={() => renameFile(file.id, file.displayName)}>Rename</button>
+
+        {#if users}
+            <select bind:value={shareSelections[file.id].target}>
+            <option value={null} disabled selected>Select user</option>
+            {#each users as user}
+                <option value={user.id}>{user.username}</option>
+            {/each}
+            </select>
+            <label><input type="radio" name={`perm-${file.id}`} value="View" bind:group={shareSelections[file.id].permission} /> View</label>
+            <label><input type="radio" name={`perm-${file.id}`} value="Edit" bind:group={shareSelections[file.id].permission} /> Edit</label>
+            <button onclick={() => shareFile(file.id)}>Share</button>
+        {/if}
     {/each}
     {#each folders as folder}
         <button type="button" onclick={() => enterFolder(folder.id, folder.displayName)}>{folder.displayName}</button>
         <button type="button" onclick={() => deleteFolder(folder.id)}>Delete Folder</button>
         <input bind:value={folder.displayName}><button type="button" onclick={() => renameFolder(folder.id,folder.displayName)}>Rename</button>
+
+        {#if users}
+            <select bind:value={shareSelections[folder.id].target}>
+            <option value={null} disabled selected>Select user</option>
+            {#each users as user}
+                <option value={user.id}>{user.username}</option>
+            {/each}
+            </select>
+            <label><input type="radio" name={`perm-${folder.id}`} value="View" bind:group={shareSelections[folder.id].permission} /> View</label>
+            <label><input type="radio" name={`perm-${folder.id}`} value="Edit" bind:group={shareSelections[folder.id].permission} /> Edit</label>
+            <button onclick={() => shareFolder(folder.id)}>Share</button>
+        {/if}
     {/each}
 
     <button onclick={() => createFolder()}>Create Folder</button>

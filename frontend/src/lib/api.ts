@@ -1,5 +1,5 @@
 import { goto } from '$app/navigation';
-import type { User, Folder, CloudFile, FolderContents, RegisterRequest, SharedContents } from '$lib/types';
+import type { User, Folder,  CloudFile,  FolderContents,  RegisterRequest,  SharedContents, UserSummary } from '$lib/types';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -54,6 +54,14 @@ export const endpoints = {
         }),
     getMe: () => 
         request<User>('/users/me', {
+            method: 'GET'
+        }),
+    getSharableUsers: () =>
+        request<UserSummary[]>('/users/summary', {
+            method: 'GET'
+        }),
+    getUsers: () =>
+        request<User[]>('/user', {
             method: 'GET'
         }),
     createFolder: (displayName: string, parentFolder: number|null = null) => 

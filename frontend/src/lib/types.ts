@@ -7,6 +7,11 @@ interface User {
     rootFolderId: number
 }
 
+interface UserSummary {
+    id: number
+    username: string
+}
+
 interface Folder {
     id: number,
     displayName: string
@@ -62,4 +67,4 @@ interface PathSegment {
   displayName: string;
 }
 
-export type { User, Folder, CloudFile, FolderContents, RegisterRequest, PathSegment, SharedContents, SharedFile, SharedFolder }
+export type { User, Folder, CloudFile, FolderContents, RegisterRequest, PathSegment, SharedContents, SharedFile, SharedFolder, UserSummary }
