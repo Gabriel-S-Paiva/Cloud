@@ -3,17 +3,15 @@
 	import { endpoints } from '$lib/api';
 	import { auth } from '$lib/stores/auth.svelte';
     import { navigation } from '$lib/stores/navigation.svelte';
+    import { toast } from '$lib/stores/toast.svelte';
 	import type { UserSummary,  FolderContents } from '$lib/types';
 	import { onMount } from 'svelte';
     import {page} from '$app/stores'
-
-    // ERROR
-    let fetchErr = $state<string | null>(null);
+	import FileManager from '$lib/components/Reactive/FileManager.svelte';
+	import Toast from '$lib/components/UI/Toast/Toast.svelte';
 
     // RENDERING
     let folderContents = $state<FolderContents | null>(null)
-    let folders = $derived(folderContents?.folders ?? []);
-    let files = $derived(folderContents?.files ?? []); 
     
     // UPLOAD
     let selectedFiles = $state<FileList | null>(null)
@@ -40,29 +38,10 @@
                 shareSelections[item.id] = { target: null, permission: 'View' };
             }
         } catch(err) {
-            fetchErr = err instanceof Error ? err.message : 'Folder Fecth Failed';
+            console.error(err)
+            err instanceof Error ? toast.add(err.message) : toast.add('Folder Fecth Failed');
         }
     })
-
-    const enterFolder = async (id: number, displayName: string): Promise<void> => {
-        try {
-            navigation.enter({ id, displayName });
-            folderContents = await endpoints.getFolderContent(id);
-            goto(`/home/${navigation.urlPath}`);
-        } catch (err) {
-            fetchErr = err instanceof Error ? err.message : 'Folder fetch failed';
-        }
-    };
-
-    const openFile = async (id: number, download = false): Promise<void> => {
-        try {
-            const blob = await endpoints.getFileContent(id, download);
-            const url = URL.createObjectURL(blob);
-            window.open(url, '_blank');
-        } catch (err) {
-            fetchErr = err instanceof Error ? err.message : 'File fetch failed';
-        }
-    };
 
     const createFolder = async (): Promise<void> => {
         try {
@@ -70,7 +49,7 @@
             await endpoints.createFolder('New Folder', id);
             folderContents = await endpoints.getFolderContent(id);
         } catch (err) {
-            fetchErr = err instanceof Error ? err.message : 'Could not create folder';
+            err instanceof Error ? toast.add(err.message) : toast.add('Folder Fecth Failed');
         }
     };
 
@@ -94,49 +73,9 @@
 
             folderContents = await endpoints.getFolderContent(parentId);
         } catch (err) {
-            fetchErr = err instanceof Error ? err.message : 'Upload failed';
+            err instanceof Error ? toast.add(err.message) : toast.add('Folder Fecth Failed');
         } finally {
             uploadProgress = null;
-        }
-    };
-
-    const deleteFile = async (id: number) => {
-        try {
-            await endpoints.deleteFile(id);
-            const pid = navigation.currentFolderId ?? auth.user!.rootFolderId;
-            folderContents = await endpoints.getFolderContent(pid);
-        } catch (err) {
-            fetchErr = err instanceof Error ? err.message : 'Delete failed';
-        }
-        };
-
-    const renameFile = async (id: number, newName: string) => {
-        try {
-            await endpoints.updateFile(id, newName);
-            const pid = navigation.currentFolderId ?? auth.user!.rootFolderId;
-            folderContents = await endpoints.getFolderContent(pid);
-        } catch (err) {
-            fetchErr = err instanceof Error ? err.message : 'Rename failed';
-        }
-    };
-
-    const deleteFolder = async (id: number) => {
-        try {
-            await endpoints.deleteFolder(id);
-            const pid = navigation.currentFolderId ?? auth.user!.rootFolderId;
-            folderContents = await endpoints.getFolderContent(pid);
-        } catch (err) {
-            fetchErr = err instanceof Error ? err.message : 'Delete failed';
-        }
-        };
-
-    const renameFolder = async (id: number, newName: string) => {
-        try {
-            await endpoints.updateFolder(id, newName);
-            const pid = navigation.currentFolderId ?? auth.user!.rootFolderId;
-            folderContents = await endpoints.getFolderContent(pid);
-        } catch (err) {
-            fetchErr = err instanceof Error ? err.message : 'Rename failed';
         }
     };
 
@@ -153,7 +92,7 @@
         try {
             await endpoints.createShare(id, null, sel.target, sel.permission);
         } catch (err) {
-            fetchErr = err instanceof Error ? err.message : 'Share failed';
+            err instanceof Error ? toast.add(err.message) : toast.add('Folder Fecth Failed');
         }
     };
 
@@ -163,7 +102,7 @@
         try {
             await endpoints.createShare(null, id, sel.target, sel.permission);
         } catch (err) {
-            fetchErr = err instanceof Error ? err.message : 'Share failed';
+            err instanceof Error ? toast.add(err.message) : toast.add('Folder Fecth Failed');
         }
     };
 
@@ -183,42 +122,11 @@
             / <button onclick={() => { navigation.goToDepth(i); goto(`/home/${navigation.urlPath}`); }}>{segment.displayName}</button>
         {/each}
     </nav>
-    {#each files as file}
-        <button type="button" onclick={() => openFile(file.id)}>{file.displayName}</button>
-        <button type="button" onclick={() => deleteFile(file.id)}>Delete</button>
-        <input bind:value={file.displayName} />
-        <button type="button" onclick={() => renameFile(file.id, file.displayName)}>Rename</button>
-
-        {#if users}
-            <select bind:value={shareSelections[file.id].target}>
-            <option value={null} disabled selected>Select user</option>
-            {#each users as user}
-                <option value={user.id}>{user.username}</option>
-            {/each}
-            </select>
-            <label><input type="radio" name={`perm-${file.id}`} value="View" bind:group={shareSelections[file.id].permission} /> View</label>
-            <label><input type="radio" name={`perm-${file.id}`} value="Edit" bind:group={shareSelections[file.id].permission} /> Edit</label>
-            <button onclick={() => shareFile(file.id)}>Share</button>
-        {/if}
-    {/each}
-    {#each folders as folder}
-        <button type="button" onclick={() => enterFolder(folder.id, folder.displayName)}>{folder.displayName}</button>
-        <button type="button" onclick={() => deleteFolder(folder.id)}>Delete Folder</button>
-        <input bind:value={folder.displayName}><button type="button" onclick={() => renameFolder(folder.id,folder.displayName)}>Rename</button>
-
-        {#if users}
-            <select bind:value={shareSelections[folder.id].target}>
-            <option value={null} disabled selected>Select user</option>
-            {#each users as user}
-                <option value={user.id}>{user.username}</option>
-            {/each}
-            </select>
-            <label><input type="radio" name={`perm-${folder.id}`} value="View" bind:group={shareSelections[folder.id].permission} /> View</label>
-            <label><input type="radio" name={`perm-${folder.id}`} value="Edit" bind:group={shareSelections[folder.id].permission} /> Edit</label>
-            <button onclick={() => shareFolder(folder.id)}>Share</button>
-        {/if}
-    {/each}
-
+    {#if folderContents}
+        <FileManager {...folderContents}/>
+    {:else}
+        No data
+    {/if}
     <button onclick={() => createFolder()}>Create Folder</button>
     <input type="file" bind:files={selectedFiles} onchange={createFile} />
 
@@ -227,6 +135,8 @@
     <progress value={uploadProgress.uploaded} max={uploadProgress.total}></progress>
     <span>{Math.round((uploadProgress.uploaded / uploadProgress.total) * 100)}%</span>
     {/if}
+
+    <Toast/>
 </div>
 
 

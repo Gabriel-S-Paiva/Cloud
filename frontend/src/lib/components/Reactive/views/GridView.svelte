@@ -7,10 +7,12 @@
 	}
 
 	let { items }: Props = $props();
+
+    const isFile = (item: CloudFile | Folder): item is CloudFile => 'size' in item;
 </script>
 
 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4">
-	{#each items as item (item.id)}
+	{#each items as item (isFile(item) ? `file-${item.id}` : `folder-${item.id}`)}
 		<ItemRenderer 
 			{item} 
 			variant="grid"  

@@ -7,10 +7,12 @@
 	}
 
 	let { items }: Props = $props();
+
+	const isFile = (item: CloudFile | Folder): item is CloudFile => 'size' in item;
 </script>
 
 <ul>
-    {#each items as item (item.id)}
-        <ItemRenderer {item} variant="list"/>
-    {/each}
+	{#each items as item (isFile(item) ? `file-${item.id}` : `folder-${item.id}`)}
+		<ItemRenderer {item} variant="list" />
+	{/each}
 </ul>
