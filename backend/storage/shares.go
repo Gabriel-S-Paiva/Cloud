@@ -137,7 +137,7 @@ func (s *Store) GetOutgoingShares(ctx context.Context, userId int) (*SharedConte
 		return nil, err
 	}
 
-	folderRows, err := tx.QueryContext(ctx, `SELECT f.id, f.display_name, f.owned_by, f.parent_folder, s.id, s.permissions r.username, owner.username
+	folderRows, err := tx.QueryContext(ctx, `SELECT f.id, f.display_name, f.owned_by, f.parent_folder, s.id, s.permissions, r.username, owner.username
 												FROM Folders AS f
 												JOIN Shares AS s ON f.id = s.folder
 												JOIN Users AS r ON r.id = s.shared_with
