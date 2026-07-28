@@ -78,7 +78,7 @@ func main() {
 	mux.HandleFunc("POST /login", authHandlers.Login)
 	// Auth Endpoints
 	mux.HandleFunc("GET /users/me", authMW.RequireAuth(userHandlers.GetMe))
-	mux.HandleFunc("GET /users", authMW.RequireAuth(userHandlers.ListSharableUsers))
+	mux.HandleFunc("GET /users/summary", authMW.RequireAuth(userHandlers.ListSharableUsers))
 	mux.HandleFunc("POST /logout", authHandlers.Logout)
 
 	mux.HandleFunc("POST /folders", authMW.RequireAuth(foldHandlers.CreateFolder))
