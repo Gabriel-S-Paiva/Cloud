@@ -1,4 +1,3 @@
-<!-- src/lib/components/domain/items/FolderCard.svelte -->
 <script lang="ts">
 	import { endpoints } from '$lib/api';
     import { navigation } from '$lib/stores/navigation.svelte';
@@ -7,6 +6,7 @@
 	import Modal from '$lib/components/UI/Modal/Modal.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import type { Folder } from '$lib/types';
+	import { Folder as FolderIcon} from '@lucide/svelte'
 
 	interface Props {
 		folder: Folder;
@@ -82,9 +82,10 @@
 	role="button"
 	tabindex="0"
 >
-    ROW MODE
 	<div class="flex items-center gap-3 truncate">
-		<span class="text-xl">Icon</span>
+		<div class="file-icon font-bold text-lg">
+			<FolderIcon/>
+		</div>
 		{#if isEditing}
 			<input 
 				type="text" 

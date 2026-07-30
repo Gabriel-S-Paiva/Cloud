@@ -1,10 +1,10 @@
-<!-- src/lib/components/domain/items/FileCard.svelte -->
 <script lang="ts">
 	import { endpoints } from '$lib/api';
 	import Button from '$lib/components/UI/Button/Button.svelte';
 	import Modal from '$lib/components/UI/Modal/Modal.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import type { CloudFile } from '$lib/types';
+	import { FileText } from '@lucide/svelte';
 
 
 
@@ -78,7 +78,9 @@
 	role="button"
 	tabindex="0"
 >
-	<div class="file-icon font-bold text-lg">📄</div>
+	<div class="file-icon font-bold text-lg">
+		<FileText/>
+	</div>
 
 	<div class="file-details mt-2">
 		{#if isEditing}

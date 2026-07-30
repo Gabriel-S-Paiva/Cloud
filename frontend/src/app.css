@@ -1,24 +1,62 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/fonts/Fraunces-Variable.woff2') format('woff2-variations');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Public Sans';
+  src: url('/fonts/PublicSans-Variable.woff2') format('woff2-variations');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/JetBrainsMono-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  --surface: oklch(98% 0.01 90);
-  --surface-raised: oklch(100% 0 0);
-  --border: oklch(90% 0.01 90);
-  --text: oklch(20% 0.01 90);
-  --text-muted: oklch(50% 0.01 90);
-  --accent: oklch(60% 0.15 250);
-  --danger: oklch(55% 0.2 25);
+  --surface: #EDEFEA;
+  --surface-raised: #FFFFFF;
+  --border: #D9DED6;
+  --text: #1E2A22;
+  --text-muted: #8A8578;
+  --accent: #4B6F52;
+  --accent-secondary: #A9812E;
+  --danger: #A8442C;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Public Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
 [data-theme="dark"] {
-  --surface: oklch(20% 0.01 90);
-  --surface-raised: oklch(25% 0.01 90);
-  --border: oklch(35% 0.01 90);
-  --text: oklch(95% 0.01 90);
-  --text-muted: oklch(65% 0.01 90);
-  --accent: oklch(70% 0.15 250);
-  --danger: oklch(65% 0.2 25);
+  --surface: #1B2420;
+  --surface-raised: #232E28;
+  --border: #34413A;
+  --text: #E8EAE5;
+  --text-muted: #9BA598;
+  --accent: #6B9472;
+  --accent-secondary: #C79A45;
+  --danger: #C2604A;
 }
 
 @theme inline {
@@ -28,5 +66,10 @@
   --color-text: var(--text);
   --color-text-muted: var(--text-muted);
   --color-accent: var(--accent);
+  --color-accent-secondary: var(--accent-secondary);
   --color-danger: var(--danger);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
 }

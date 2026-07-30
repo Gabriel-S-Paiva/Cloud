@@ -22,8 +22,18 @@
 	});
 </script>
 
-<div>
-	<p>{item.message}</p>
-	<button onclick={() => toast.deleteById(item.id)}>✕</button>
-	<progress value={progress} max="100"></progress>
+<div class="bg-surface-raised border border-border rounded-lg p-3 overflow-hidden relative"
+     style="box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);">
+	<div class="flex items-start justify-between gap-3">
+		<p class="text-sm text-text flex-1">{item.message}</p>
+		<button
+			onclick={() => toast.deleteById(item.id)}
+			class="text-text-muted hover:text-text text-sm leading-none"
+			aria-label="Dismiss"
+		>
+			✕
+		</button>
+	</div>
+	<div class="absolute bottom-0 left-0 h-0.5 bg-accent transition-[width] duration-75 ease-linear"
+	     style="width: {progress}%"></div>
 </div>
