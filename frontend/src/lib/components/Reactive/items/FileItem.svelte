@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { driveContents } from '$lib/stores/driveContents.svelte';
 	import { endpoints } from '$lib/api';
 	import Button from '$lib/components/UI/Button/Button.svelte';
 	import Modal from '$lib/components/UI/Modal/Modal.svelte';
@@ -6,16 +7,13 @@
 	import type { CloudFile } from '$lib/types';
 	import { FileText } from '@lucide/svelte';
 
+	let { file, variant }: { file: CloudFile; variant: 'list' | 'grid' } = $props();
 
-
-	let { file }: {file: CloudFile} = $props();
-
-	// Local component state
 	let isEditing = $state(false);
 	let editName = $state(file.displayName);
-    $effect(() => {
-        editName = file.displayName;
-    });
+	$effect(() => {
+		editName = file.displayName;
+	});
 	let isModalOpen = $state(false);
 	let activeModalTab = $state<'actions' | 'info' | 'delete'>('actions');
 
@@ -35,26 +33,9 @@
 			isEditing = false;
 			return;
 		}
-
-		try {
-			await endpoints.updateFile(file.id, editName);
-			file.displayName = editName; // Optimistic update
-			isEditing = false;
-			toast.success('File renamed');
-		} catch (err) {
-			toast.error(err instanceof Error ? err.message : 'Failed to rename file');
-			editName = file.displayName; // Revert on failure
-		}
+		await driveContents.renameFile(file.id, editName);
+		isEditing = false;
 	};
-
-    const deleteFile = async (id: number) => {
-        try {
-            await endpoints.deleteFile(id);
-            toast.success('File Deleted')
-        } catch (err) {
-            toast.error(err instanceof Error ? err.message : 'Failed to rename file');
-        }
-    };
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (e.key === 'Enter') handleRename();
@@ -71,30 +52,30 @@
 	};
 </script>
 
-<div 
-	class="file-card border p-4 rounded hover:bg-gray-50 select-none cursor-pointer"
+<div
+	class="file-card border p-4 rounded hover:bg-gray-50 select-none cursor-pointer {variant === 'list' ? 'flex items-center gap-3' : ''}"
 	ondblclick={() => openFile(false)}
 	oncontextmenu={handleContextMenu}
 	role="button"
 	tabindex="0"
 >
 	<div class="file-icon font-bold text-lg">
-		<FileText/>
+		<FileText />
 	</div>
 
-	<div class="file-details mt-2">
+	<div class="file-details {variant === 'grid' ? 'mt-2' : 'flex-1 flex items-center justify-between'}">
 		{#if isEditing}
-			<input 
-				type="text" 
-				bind:value={editName} 
-				onkeydown={handleKeyDown} 
+			<input
+				type="text"
+				bind:value={editName}
+				onkeydown={handleKeyDown}
 				onblur={handleRename}
-				onclick={(e) => e.stopPropagation()} 
-				autofocus 
+				onclick={(e) => e.stopPropagation()}
+				autofocus
 			/>
 		{:else}
-			<p 
-				class="truncate" 
+			<p
+				class="truncate"
 				ondblclick={(e) => {
 					e.stopPropagation();
 					isEditing = true;
@@ -104,8 +85,8 @@
 			</p>
 		{/if}
 
-		<button 
-			type="button" 
+		<button
+			type="button"
 			onclick={(e) => {
 				e.stopPropagation();
 				activeModalTab = 'actions';
@@ -138,10 +119,10 @@
 			<h3>Confirm Delete</h3>
 			<p>Are you sure you want to delete <strong>{file.displayName}</strong>?</p>
 			<Button variant="secondary" onclick={() => (activeModalTab = 'actions')}>Cancel</Button>
-			<Button 
-				variant="danger" 
+			<Button
+				variant="danger"
 				onclick={() => {
-					deleteFile(file.id);
+					driveContents.deleteFile(file.id);
 					isModalOpen = false;
 				}}
 			>

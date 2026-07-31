@@ -1,18 +1,14 @@
 <script lang="ts">
-	import { endpoints } from '$lib/api';
-    import { navigation } from '$lib/stores/navigation.svelte';
-    import { goto } from '$app/navigation';
+	import { driveContents } from '$lib/stores/driveContents.svelte';
+	import { navigation } from '$lib/stores/navigation.svelte';
+	import { goto } from '$app/navigation';
 	import Button from '$lib/components/UI/Button/Button.svelte';
 	import Modal from '$lib/components/UI/Modal/Modal.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import type { Folder } from '$lib/types';
-	import { Folder as FolderIcon} from '@lucide/svelte'
+	import { Folder as FolderIcon } from '@lucide/svelte';
 
-	interface Props {
-		folder: Folder;
-	}
-
-	let { folder }: {folder: Folder} = $props();
+	let { folder, variant }: { folder: Folder; variant: 'list' | 'grid' } = $props();
 
 	let isEditing = $state(false);
 	let editName = $state(folder.displayName);
@@ -30,25 +26,8 @@
 			isEditing = false;
 			return;
 		}
-
-		try {
-			await endpoints.updateFolder(folder.id, editName);
-			folder.displayName = editName;
-			isEditing = false;
-			toast.success('Folder renamed');
-		} catch (err) {
-			toast.error(err instanceof Error ? err.message : 'Failed to rename folder');
-			editName = folder.displayName;
-		}
-	};
-
-	const handleDelete = async () => {
-		try {
-			await endpoints.deleteFolder(folder.id);
-			toast.success('Folder deleted');
-		} catch (err) {
-			toast.error(err instanceof Error ? err.message : 'Failed to delete folder');
-		}
+		await driveContents.renameFolder(folder.id, editName);
+		isEditing = false;
 	};
 
 	const handleKeyDown = (e: KeyboardEvent) => {
@@ -65,17 +44,17 @@
 		isModalOpen = true;
 	};
 
-    const enterFolder = async (id: number, displayName: string): Promise<void> => {
-        try {
-            navigation.enter({ id, displayName });
-            goto(`/home/${navigation.urlPath}`);
-        } catch (err) {
-            err instanceof Error ? toast.error(err.message) : toast.error('Folder fetch failed');
-        }
-    };
+	const enterFolder = async (id: number, displayName: string): Promise<void> => {
+		try {
+			navigation.enter({ id, displayName });
+			goto(`/home/${navigation.urlPath}`);
+		} catch (err) {
+			err instanceof Error ? toast.error(err.message) : toast.error('Folder fetch failed');
+		}
+	};
 </script>
 
-<div 
+<div
 	class="folder-card border p-4 rounded hover:bg-gray-50 select-none cursor-pointer flex items-center justify-between"
 	ondblclick={() => enterFolder(folder.id, folder.displayName)}
 	oncontextmenu={handleContextMenu}
@@ -84,20 +63,20 @@
 >
 	<div class="flex items-center gap-3 truncate">
 		<div class="file-icon font-bold text-lg">
-			<FolderIcon/>
+			<FolderIcon />
 		</div>
 		{#if isEditing}
-			<input 
-				type="text" 
-				bind:value={editName} 
-				onkeydown={handleKeyDown} 
+			<input
+				type="text"
+				bind:value={editName}
+				onkeydown={handleKeyDown}
 				onblur={() => handleRename()}
-				onclick={(e) => e.stopPropagation()} 
+				onclick={(e) => e.stopPropagation()}
 				use:focus
 			/>
 		{:else}
-			<p 
-				class="truncate font-medium" 
+			<p
+				class="truncate font-medium"
 				ondblclick={(e) => {
 					e.stopPropagation();
 					isEditing = true;
@@ -108,8 +87,8 @@
 		{/if}
 	</div>
 
-	<button 
-		type="button" 
+	<button
+		type="button"
 		class="px-2"
 		onclick={(e) => {
 			e.stopPropagation();
@@ -141,10 +120,10 @@
 			<p>Are you sure you want to delete <strong>{folder.displayName}</strong> and its contents?</p>
 			<div class="flex gap-2 mt-4">
 				<Button variant="secondary" onclick={() => (activeModalTab = 'actions')}>Cancel</Button>
-				<Button 
-					variant="danger" 
+				<Button
+					variant="danger"
 					onclick={() => {
-						handleDelete();
+						driveContents.deleteFolder(folder.id);
 						isModalOpen = false;
 					}}
 				>
