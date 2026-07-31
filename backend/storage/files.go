@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const storageDir = "storage"
+const storageDir = "../data"
 
 type File struct {
 	Id            int       `json:"id"`
