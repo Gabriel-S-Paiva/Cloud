@@ -63,10 +63,38 @@
 			err instanceof Error ? toast.error(err.message) : toast.error('Folder fetch failed');
 		}
 	};
+
+	let isDragOver = $state(false);
+
+	const handleDrop = async (e: DragEvent) => {
+		e.preventDefault();
+		isDragOver = false;
+		const raw = e.dataTransfer?.getData('application/json');
+		if (!raw) return;
+		const { type, id } = JSON.parse(raw) as { type: 'file' | 'folder'; id: number };
+		if (type === 'folder' && id === folder.id) return; // dropped onto itself, no-op
+		if (type === 'file') await driveContents.moveFile(id, folder.id);
+		else await driveContents.moveFolder(id, folder.id);
+	};
 </script>
 
 <div
-	class="group border border-border rounded-lg bg-surface-raised hover:border-accent/40 transition-colors select-none cursor-pointer flex items-center justify-between gap-3 px-3 py-2.5"
+	draggable="true"
+	ondragstart={(e) => {
+		e.dataTransfer?.setData('application/json', JSON.stringify({ type: 'folder', id: folder.id }));
+		if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+	}}
+	ondragover={(e) => {
+		e.preventDefault();
+		if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+	}}
+	ondragenter={(e) => {
+		e.preventDefault();
+		isDragOver = true;
+	}}
+	ondragleave={() => (isDragOver = false)}
+	ondrop={handleDrop}
+	class="group border rounded-lg bg-surface-raised transition-colors select-none cursor-pointer flex items-center justify-between gap-3 px-3 py-2.5 {isDragOver ? 'border-accent bg-accent/10' : 'border-border hover:border-accent/40'}"
 	ondblclick={() => enterFolder(folder.id, folder.displayName)}
 	oncontextmenu={handleContextMenu}
 	role="button"

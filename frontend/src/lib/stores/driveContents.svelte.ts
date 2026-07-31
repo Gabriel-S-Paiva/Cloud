@@ -89,6 +89,26 @@ class DriveContents {
 			toast.error(err instanceof Error ? err.message : 'Failed to share folder');
 		}
 	}
+
+	async moveFile(id: number, newParentId: number) {
+		try {
+			await endpoints.updateFile(id, null, newParentId);
+			this.files = this.files.filter((f) => f.id !== id);
+			toast.success('File moved');
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : 'Failed to move file');
+		}
+	}
+
+	async moveFolder(id: number, newParentId: number) {
+		try {
+			await endpoints.updateFolder(id, null, newParentId);
+			this.folders = this.folders.filter((f) => f.id !== id);
+			toast.success('Folder moved');
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : 'Failed to move folder');
+		}
+	}
 }
 
 export const driveContents = new DriveContents();

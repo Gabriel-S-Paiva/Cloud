@@ -68,6 +68,11 @@
 </script>
 
 <div
+	draggable="true"
+	ondragstart={(e) => {
+		e.dataTransfer?.setData('application/json', JSON.stringify({ type: 'file', id: file.id }));
+		if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+	}}
 	class="group border border-border rounded-lg bg-surface-raised hover:border-accent/40 transition-colors select-none cursor-pointer {variant === 'list' ? 'flex items-center gap-3 px-3 py-2.5' : 'p-4 flex flex-col items-center gap-2 text-center'}"
 	ondblclick={() => openFile(false)}
 	oncontextmenu={handleContextMenu}

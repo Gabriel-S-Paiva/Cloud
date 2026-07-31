@@ -1,7 +1,8 @@
 import { goto } from '$app/navigation';
 import type { User, Folder,  CloudFile,  FolderContents,  RegisterRequest,  SharedContents, UserSummary } from '$lib/types';
+import { PUBLIC_API_BASE } from '$env/static/public';
 
-const API_BASE = 'http://localhost:8080';
+const API_BASE = PUBLIC_API_BASE;
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {

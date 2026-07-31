@@ -89,19 +89,50 @@
 			uploadProgress = null;
 		}
 	};
+
+	let dragOverCrumb = $state<number | null>(null);
+
+	const handleCrumbDrop = async (e: DragEvent, targetFolderId: number) => {
+		e.preventDefault();
+		dragOverCrumb = null;
+		const raw = e.dataTransfer?.getData('application/json');
+		if (!raw) return;
+		const { type, id } = JSON.parse(raw) as { type: 'file' | 'folder'; id: number };
+		if (type === 'file') await driveContents.moveFile(id, targetFolderId);
+		else await driveContents.moveFolder(id, targetFolderId);
+	};
 </script>
 
 <div class="p-6">
 	<nav class="flex items-center gap-1 text-sm text-text-muted mb-4">
-		<button class="hover:text-text" onclick={() => goto('/home')}>Home</button>
+		<button
+			class="hover:text-text px-1.5 py-0.5 rounded {dragOverCrumb === auth.user?.rootFolderId ? 'bg-accent/10 text-accent' : ''}"
+			onclick={() => goto('/home')}
+			ondragover={(e) => e.preventDefault()}
+			ondragenter={(e) => {
+				e.preventDefault();
+				dragOverCrumb = auth.user!.rootFolderId;
+			}}
+			ondragleave={() => (dragOverCrumb = null)}
+			ondrop={(e) => handleCrumbDrop(e, auth.user!.rootFolderId)}
+		>
+			Home
+		</button>
 		{#each navigation.path as segment, i}
 			<span>/</span>
 			<button
-				class="hover:text-text"
+				class="hover:text-text px-1.5 py-0.5 rounded {dragOverCrumb === segment.id ? 'bg-accent/10 text-accent' : ''}"
 				onclick={() => {
 					navigation.goToDepth(i);
 					goto(`/home/${navigation.urlPath}`);
 				}}
+				ondragover={(e) => e.preventDefault()}
+				ondragenter={(e) => {
+					e.preventDefault();
+					dragOverCrumb = segment.id;
+				}}
+				ondragleave={() => (dragOverCrumb = null)}
+				ondrop={(e) => handleCrumbDrop(e, segment.id)}
 			>
 				{segment.displayName}
 			</button>
