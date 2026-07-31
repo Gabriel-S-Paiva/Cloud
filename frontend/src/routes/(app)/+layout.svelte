@@ -10,10 +10,13 @@
 
 	onMount(async () => {
 		await auth.checkSession();
-		if (!auth.isLoggedIn) {
+		checked = true;
+	});
+
+	$effect(() => {
+		if (checked && !auth.isLoggedIn) {
 			goto('/login');
 		}
-		checked = true;
 	});
 </script>
 

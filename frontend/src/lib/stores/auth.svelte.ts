@@ -21,10 +21,15 @@ class AuthClass {
     await this.checkSession();
   }
 
-  async logout() {
+async logout() {
+  try {
     await endpoints.logout();
+  } catch {
+    // No need to treat error if something went wrong revoke session in the frontend
+  } finally {
     this.user = null;
   }
+}
 
   async checkSession() {
     try {

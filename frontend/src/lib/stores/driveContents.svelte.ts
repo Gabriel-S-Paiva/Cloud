@@ -11,9 +11,9 @@ class DriveContents {
 		return [...this.folders, ...this.files];
 	}
 
-	setContents(folders: Folder[], files: CloudFile[]) {
-		this.folders = folders;
-		this.files = files;
+	setContents(folders: Folder[] | null, files: CloudFile[] | null) {
+		this.folders = folders ?? [];
+		this.files = files ?? [];
 	}
 
 	async loadSharableUsers() {
