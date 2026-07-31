@@ -107,7 +107,10 @@
 	<nav class="flex items-center gap-1 text-sm text-text-muted mb-4">
 		<button
 			class="hover:text-text px-1.5 py-0.5 rounded {dragOverCrumb === auth.user?.rootFolderId ? 'bg-accent/10 text-accent' : ''}"
-			onclick={() => goto('/home')}
+			onclick={() => {
+					navigation.goToDepth(-1)
+					goto('/home')
+				}}
 			ondragover={(e) => e.preventDefault()}
 			ondragenter={(e) => {
 				e.preventDefault();
