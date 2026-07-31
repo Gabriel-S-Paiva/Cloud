@@ -17,7 +17,10 @@
 	});
 
 	let isModalOpen = $state(false);
-	let activeModalTab = $state<'actions' | 'info' | 'delete'>('actions');
+	let activeModalTab = $state<'actions' | 'info' | 'delete' | 'share'>('actions');
+
+	let shareTarget = $state<number | null>(null);
+	let sharePermission = $state<'Edit' | 'View'>('View');
 
 	const focus = (node: HTMLElement) => node.focus();
 
@@ -28,6 +31,14 @@
 		}
 		await driveContents.renameFolder(folder.id, editName);
 		isEditing = false;
+	};
+
+	const handleShare = async () => {
+		if (!shareTarget) return;
+		await driveContents.shareFolder(folder.id, shareTarget, sharePermission);
+		isModalOpen = false;
+		shareTarget = null;
+		sharePermission = 'View';
 	};
 
 	const handleKeyDown = (e: KeyboardEvent) => {
@@ -55,16 +66,14 @@
 </script>
 
 <div
-	class="folder-card border p-4 rounded hover:bg-gray-50 select-none cursor-pointer flex items-center justify-between"
+	class="group border border-border rounded-lg bg-surface-raised hover:border-accent/40 transition-colors select-none cursor-pointer flex items-center justify-between gap-3 px-3 py-2.5"
 	ondblclick={() => enterFolder(folder.id, folder.displayName)}
 	oncontextmenu={handleContextMenu}
 	role="button"
 	tabindex="0"
 >
 	<div class="flex items-center gap-3 truncate">
-		<div class="file-icon font-bold text-lg">
-			<FolderIcon />
-		</div>
+		<FolderIcon size={18} class="text-accent shrink-0" />
 		{#if isEditing}
 			<input
 				type="text"
@@ -73,10 +82,11 @@
 				onblur={() => handleRename()}
 				onclick={(e) => e.stopPropagation()}
 				use:focus
+				class="bg-transparent border-b border-accent outline-none text-sm text-text"
 			/>
 		{:else}
 			<p
-				class="truncate font-medium"
+				class="truncate text-sm font-medium text-text"
 				ondblclick={(e) => {
 					e.stopPropagation();
 					isEditing = true;
@@ -89,7 +99,7 @@
 
 	<button
 		type="button"
-		class="px-2"
+		class="text-text-muted hover:text-text px-1 shrink-0"
 		onclick={(e) => {
 			e.stopPropagation();
 			activeModalTab = 'actions';
@@ -103,22 +113,56 @@
 <Modal open={isModalOpen} onclose={() => (isModalOpen = false)}>
 	{#if activeModalTab === 'actions'}
 		<div class="flex flex-col gap-2">
-			<Button onclick={() => enterFolder(folder.id, folder.displayName)}>Open</Button>
-			<Button onclick={() => (activeModalTab = 'info')}>Info</Button>
-			<Button onclick={() => (isEditing = true, isModalOpen = false)}>Rename</Button>
+			<Button variant="secondary" onclick={() => enterFolder(folder.id, folder.displayName)}>Open</Button>
+			<Button variant="secondary" onclick={() => (activeModalTab = 'share')}>Share</Button>
+			<Button variant="secondary" onclick={() => (activeModalTab = 'info')}>Info</Button>
+			<Button variant="secondary" onclick={() => (isEditing = true, isModalOpen = false)}>Rename</Button>
 			<Button variant="danger" onclick={() => (activeModalTab = 'delete')}>Delete</Button>
 		</div>
+	{:else if activeModalTab === 'share'}
+		<div class="flex flex-col gap-3">
+			<h3 class="font-display text-lg text-text">Share "{folder.displayName}"</h3>
+			<select
+				bind:value={shareTarget}
+				class="h-10 rounded-md border border-border bg-surface-raised px-3 text-sm text-text"
+			>
+				<option value={null} disabled>Select a person</option>
+				{#each driveContents.sharableUsers as user (user.id)}
+					<option value={user.id}>{user.username}</option>
+				{/each}
+			</select>
+			<div class="flex gap-2">
+				<button
+					type="button"
+					class="flex-1 h-9 rounded-md text-sm border {sharePermission === 'View' ? 'border-accent text-accent' : 'border-border text-text-muted'}"
+					onclick={() => (sharePermission = 'View')}
+				>
+					View
+				</button>
+				<button
+					type="button"
+					class="flex-1 h-9 rounded-md text-sm border {sharePermission === 'Edit' ? 'border-accent text-accent' : 'border-border text-text-muted'}"
+					onclick={() => (sharePermission = 'Edit')}
+				>
+					Edit
+				</button>
+			</div>
+			<div class="flex gap-2 mt-1">
+				<Button variant="secondary" onclick={() => (activeModalTab = 'actions')}>Back</Button>
+				<Button onclick={handleShare}>Confirm Share</Button>
+			</div>
+		</div>
 	{:else if activeModalTab === 'info'}
-		<div>
-			<h3 class="font-bold mb-2">Folder Details</h3>
-			<p><strong>Name:</strong> {folder.displayName}</p>
-			<Button onclick={() => (activeModalTab = 'actions')}>Back</Button>
+		<div class="flex flex-col gap-2">
+			<h3 class="font-display text-lg text-text">Folder Details</h3>
+			<p class="text-sm text-text"><span class="text-text-muted">Name:</span> {folder.displayName}</p>
+			<Button variant="secondary" onclick={() => (activeModalTab = 'actions')}>Back</Button>
 		</div>
 	{:else if activeModalTab === 'delete'}
-		<div>
-			<h3 class="font-bold mb-2">Confirm Delete</h3>
-			<p>Are you sure you want to delete <strong>{folder.displayName}</strong> and its contents?</p>
-			<div class="flex gap-2 mt-4">
+		<div class="flex flex-col gap-3">
+			<h3 class="font-display text-lg text-text">Confirm Delete</h3>
+			<p class="text-sm text-text">Are you sure you want to delete <strong>{folder.displayName}</strong> and its contents?</p>
+			<div class="flex gap-2">
 				<Button variant="secondary" onclick={() => (activeModalTab = 'actions')}>Cancel</Button>
 				<Button
 					variant="danger"

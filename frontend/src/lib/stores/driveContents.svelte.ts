@@ -1,10 +1,11 @@
 import { endpoints } from '$lib/api';
 import { toast } from '$lib/stores/toast.svelte';
-import type { CloudFile, Folder } from '$lib/types';
+import type { CloudFile, Folder, UserSummary } from '$lib/types';
 
 class DriveContents {
 	folders = $state<Folder[]>([]);
 	files = $state<CloudFile[]>([]);
+	sharableUsers = $state<UserSummary[]>([]);
 
 	get allItems() {
 		return [...this.folders, ...this.files];
@@ -13,6 +14,14 @@ class DriveContents {
 	setContents(folders: Folder[], files: CloudFile[]) {
 		this.folders = folders;
 		this.files = files;
+	}
+
+	async loadSharableUsers() {
+		try {
+			this.sharableUsers = await endpoints.getSharableUsers();
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : 'Failed to load users');
+		}
 	}
 
 	async deleteFile(id: number) {
@@ -60,6 +69,24 @@ class DriveContents {
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : 'Failed to rename folder');
 			folder.displayName = previous;
+		}
+	}
+
+	async shareFile(id: number, targetUserId: number, permission: 'Edit' | 'View') {
+		try {
+			await endpoints.createShare(id, null, targetUserId, permission);
+			toast.success('File shared');
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : 'Failed to share file');
+		}
+	}
+
+	async shareFolder(id: number, targetUserId: number, permission: 'Edit' | 'View') {
+		try {
+			await endpoints.createShare(null, id, targetUserId, permission);
+			toast.success('Folder shared');
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : 'Failed to share folder');
 		}
 	}
 }
