@@ -26,7 +26,7 @@
 			window.open(url, '_blank');
 			setTimeout(() => URL.revokeObjectURL(url), 10000);
 		} catch (err) {
-			toast.add(err instanceof Error ? err.message : 'Failed to fetch file');
+			toast.error(err instanceof Error ? err.message : 'Failed to fetch file');
 		}
 	};
 
@@ -40,9 +40,9 @@
 			await endpoints.updateFile(file.id, editName);
 			file.displayName = editName; // Optimistic update
 			isEditing = false;
-			toast.add('File renamed');
+			toast.success('File renamed');
 		} catch (err) {
-			toast.add(err instanceof Error ? err.message : 'Failed to rename file');
+			toast.error(err instanceof Error ? err.message : 'Failed to rename file');
 			editName = file.displayName; // Revert on failure
 		}
 	};
@@ -50,9 +50,9 @@
     const deleteFile = async (id: number) => {
         try {
             await endpoints.deleteFile(id);
-            toast.add('File Deleted')
+            toast.success('File Deleted')
         } catch (err) {
-            toast.add(err instanceof Error ? err.message : 'Failed to rename file');
+            toast.error(err instanceof Error ? err.message : 'Failed to rename file');
         }
     };
 

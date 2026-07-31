@@ -67,10 +67,14 @@ interface PathSegment {
   displayName: string;
 }
 
+type ToastVariant = 'info' | 'success' | 'warning' | 'error'
+
+
 interface ToastItem {
     id: string
     message: string
     durationMs: number
+    variant: ToastVariant
 }
 
-export type { User, Folder, CloudFile, FolderContents, RegisterRequest, PathSegment, SharedContents, SharedFile, SharedFolder, UserSummary, ToastItem }
+export type { User, Folder, CloudFile, FolderContents, RegisterRequest, PathSegment, SharedContents, SharedFile, SharedFolder, UserSummary, ToastItem, ToastVariant }

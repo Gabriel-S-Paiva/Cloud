@@ -35,9 +35,9 @@
 			await endpoints.updateFolder(folder.id, editName);
 			folder.displayName = editName;
 			isEditing = false;
-			toast.add('Folder renamed');
+			toast.success('Folder renamed');
 		} catch (err) {
-			toast.add(err instanceof Error ? err.message : 'Failed to rename folder');
+			toast.error(err instanceof Error ? err.message : 'Failed to rename folder');
 			editName = folder.displayName;
 		}
 	};
@@ -45,9 +45,9 @@
 	const handleDelete = async () => {
 		try {
 			await endpoints.deleteFolder(folder.id);
-			toast.add('Folder deleted');
+			toast.success('Folder deleted');
 		} catch (err) {
-			toast.add(err instanceof Error ? err.message : 'Failed to delete folder');
+			toast.error(err instanceof Error ? err.message : 'Failed to delete folder');
 		}
 	};
 
@@ -70,7 +70,7 @@
             navigation.enter({ id, displayName });
             goto(`/home/${navigation.urlPath}`);
         } catch (err) {
-            err instanceof Error ? toast.add(err.message) : toast.add('Folder fetch failed');
+            err instanceof Error ? toast.error(err.message) : toast.error('Folder fetch failed');
         }
     };
 </script>

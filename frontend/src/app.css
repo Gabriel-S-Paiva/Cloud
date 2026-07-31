@@ -41,6 +41,7 @@
   --text-muted: #8A8578;
   --accent: #4B6F52;
   --accent-secondary: #A9812E;
+  --info: #6B7A82;
   --danger: #A8442C;
 
   --font-display: 'Fraunces', Georgia, serif;
@@ -56,6 +57,7 @@
   --text-muted: #9BA598;
   --accent: #6B9472;
   --accent-secondary: #C79A45;
+  --info: #8FA0A8;
   --danger: #C2604A;
 }
 
@@ -67,6 +69,7 @@
   --color-text-muted: var(--text-muted);
   --color-accent: var(--accent);
   --color-accent-secondary: var(--accent-secondary);
+  --color-info: var(--info);
   --color-danger: var(--danger);
 
   --font-display: var(--font-display);

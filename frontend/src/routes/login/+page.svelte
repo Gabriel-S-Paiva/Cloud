@@ -21,9 +21,10 @@
     loginError = null;
     try {
       await auth.login(loginUsername, loginPassword);
+      toast.success('Login successfull.')
       goto('/home');
     } catch (err) {
-      err instanceof Error ? toast.add(err.message) : toast.add('Login failed');
+      err instanceof Error ? toast.error(err.message) : toast.error('Login failed');
     }
   }
 
@@ -31,9 +32,9 @@
     e.preventDefault();
     try {
       await auth.register(registerUsername, registerPassword);
-      toast.add('Account created - waiting for admin approval.')
+      toast.success('Account created - waiting for admin approval.')
     } catch (err) {
-      err instanceof Error ? toast.add(err.message) : toast.add('Registration failed');
+      err instanceof Error ? toast.error(err.message) : toast.error('Registration failed');
     }
   }
 </script>

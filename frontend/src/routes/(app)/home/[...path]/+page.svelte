@@ -39,7 +39,7 @@
             }
         } catch(err) {
             console.error(err)
-            err instanceof Error ? toast.add(err.message) : toast.add('Folder Fecth Failed');
+            err instanceof Error ? toast.error(err.message) : toast.error('Folder Fecth Failed');
         }
     })
 
@@ -49,7 +49,7 @@
             await endpoints.createFolder('New Folder', id);
             folderContents = await endpoints.getFolderContent(id);
         } catch (err) {
-            err instanceof Error ? toast.add(err.message) : toast.add('Folder Fecth Failed');
+            err instanceof Error ? toast.error(err.message) : toast.error('Folder Fecth Failed');
         }
     };
 
@@ -73,7 +73,7 @@
 
             folderContents = await endpoints.getFolderContent(parentId);
         } catch (err) {
-            err instanceof Error ? toast.add(err.message) : toast.add('Folder Fecth Failed');
+            err instanceof Error ? toast.error(err.message) : toast.error('Folder Fecth Failed');
         } finally {
             uploadProgress = null;
         }
@@ -92,7 +92,7 @@
         try {
             await endpoints.createShare(id, null, sel.target, sel.permission);
         } catch (err) {
-            err instanceof Error ? toast.add(err.message) : toast.add('Folder Fecth Failed');
+            err instanceof Error ? toast.error(err.message) : toast.error('Folder Fecth Failed');
         }
     };
 
@@ -102,7 +102,7 @@
         try {
             await endpoints.createShare(null, id, sel.target, sel.permission);
         } catch (err) {
-            err instanceof Error ? toast.add(err.message) : toast.add('Folder Fecth Failed');
+            err instanceof Error ? toast.error(err.message) : toast.error('Folder Fecth Failed');
         }
     };
 
