@@ -1,47 +1,58 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { endpoints } from '$lib/api';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { navigation } from '$lib/stores/navigation.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { driveContents } from '$lib/stores/driveContents.svelte';
 	import { onMount } from 'svelte';
-	import { page } from '$app/state';
 	import FileManager from '$lib/components/Reactive/FileManager.svelte';
 
 	let loaded = $state(false);
 	let selectedFiles = $state<FileList | null>(null);
 	let uploadProgress = $state<{ uploaded: number; total: number } | null>(null);
+	let fetchToken = 0;
 
-	const currentFolderId = () => navigation.currentFolderId ?? auth.user!.rootFolderId;
-
-	onMount(async () => {
+	onMount(() => {
 		const urlSegments = page.params.path?.split('/').filter(Boolean) ?? [];
-
 		if (urlSegments.length > 0 && navigation.path.length === 0) {
 			goto('/home');
 			return;
 		}
+		driveContents.loadSharableUsers();
+	});
 
-		try {
-			const folderId = currentFolderId();
-			const contents = await endpoints.getFolderContent(folderId);
-			driveContents.setContents(contents.folders, contents.files);
-			await driveContents.loadSharableUsers();
-			loaded = true;
-		} catch (err) {
-			toast.error(err instanceof Error ? err.message : 'Folder fetch failed');
-		}
+	$effect(() => {
+		const folderId = navigation.currentFolderId ?? auth.user?.rootFolderId;
+		if (folderId == null) return;
+
+		const token = ++fetchToken;
+		loaded = false;
+
+		endpoints
+			.getFolderContent(folderId)
+			.then((contents) => {
+				if (token !== fetchToken) return; // a newer navigation already superseded this
+				driveContents.setContents(contents.folders, contents.files);
+				loaded = true;
+			})
+			.catch((err) => {
+				if (token !== fetchToken) return;
+				toast.error(err instanceof Error ? err.message : 'Folder fetch failed');
+			});
 	});
 
 	const refetch = async () => {
-		const contents = await endpoints.getFolderContent(currentFolderId());
+		const folderId = navigation.currentFolderId ?? auth.user!.rootFolderId;
+		const contents = await endpoints.getFolderContent(folderId);
 		driveContents.setContents(contents.folders, contents.files);
 	};
 
 	const createFolder = async (): Promise<void> => {
 		try {
-			await endpoints.createFolder('New Folder', currentFolderId());
+			const folderId = navigation.currentFolderId ?? auth.user!.rootFolderId;
+			await endpoints.createFolder('New Folder', folderId);
 			await refetch();
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : 'Failed to create folder');
@@ -52,7 +63,7 @@
 		if (!selectedFiles) return;
 		const file = selectedFiles[0];
 		try {
-			const parentId = currentFolderId();
+			const parentId = navigation.currentFolderId ?? auth.user!.rootFolderId;
 			const { id: newFileId } = await endpoints.createFile(
 				file.name,
 				parentId,
@@ -98,10 +109,7 @@
 	</nav>
 
 	<div class="flex items-center gap-2 mb-4">
-		<button
-			class="h-9 px-3 rounded-md bg-accent text-surface text-sm font-medium"
-			onclick={createFolder}
-		>
+		<button class="h-9 px-3 rounded-md bg-accent text-surface text-sm font-medium" onclick={createFolder}>
 			+ New Folder
 		</button>
 		<label class="h-9 px-3 rounded-md border border-border text-sm text-text flex items-center cursor-pointer">

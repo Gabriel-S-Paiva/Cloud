@@ -7,6 +7,7 @@
 		FolderOpen,
 		Share2,
 		CircleUser,
+		ShieldCheck,
 		ChevronsLeft,
 		ChevronsRight,
 		LogOut,
@@ -15,12 +16,13 @@
 
 	let collapsed = $state(false);
 
-	const links = [
+	const links = $derived([
 		{ href: '/home', label: 'Files', icon: FolderOpen },
 		{ href: '/shares/incoming', label: 'Shared With Me', icon: Share2 },
 		{ href: '/shares/outgoing', label: 'Manage Shares', icon: Share2 },
-		{ href: '/profile', label: 'Profile', icon: CircleUser }
-	];
+		{ href: '/profile', label: 'Profile', icon: CircleUser },
+		...(auth.user?.role === 'Admin' ? [{ href: '/admin', label: 'Admin', icon: ShieldCheck }] : [])
+	]);
 
 	const isActive = (href: string) => page.url.pathname === href;
 
