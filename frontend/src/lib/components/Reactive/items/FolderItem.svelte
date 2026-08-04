@@ -72,7 +72,7 @@
 		const raw = e.dataTransfer?.getData('application/json');
 		if (!raw) return;
 		const { type, id } = JSON.parse(raw) as { type: 'file' | 'folder'; id: number };
-		if (type === 'folder' && id === folder.id) return; // dropped onto itself, no-op
+		if (type === 'folder' && id === folder.id) return;
 		if (type === 'file') await driveContents.moveFile(id, folder.id);
 		else await driveContents.moveFolder(id, folder.id);
 	};

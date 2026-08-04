@@ -33,7 +33,7 @@
 		endpoints
 			.getFolderContent(folderId)
 			.then((contents) => {
-				if (token !== fetchToken) return; // a newer navigation already superseded this
+				if (token !== fetchToken) return;
 				driveContents.setContents(contents.folders, contents.files);
 				loaded = true;
 			})
