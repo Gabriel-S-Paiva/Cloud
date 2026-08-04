@@ -19,8 +19,8 @@ class SharedContentsStore {
 	async loadIncoming() {
 		try {
 			const res = await endpoints.getShareIncoming();
-			this.incomingFolders = res.folders;
-			this.incomingFiles = res.files;
+			this.incomingFolders = res.folders ?? [];
+			this.incomingFiles = res.files ?? [];
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : 'Failed to load shared items');
 		}
@@ -29,8 +29,8 @@ class SharedContentsStore {
 	async loadOutgoing() {
 		try {
 			const res = await endpoints.getShareOutgoing();
-			this.outgoingFolders = res.folders;
-			this.outgoingFiles = res.files;
+			this.outgoingFolders = res.folders ?? [];
+			this.outgoingFiles = res.files ?? [];
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : 'Failed to load shared items');
 		}

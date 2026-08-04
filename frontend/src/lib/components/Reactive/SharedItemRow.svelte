@@ -1,5 +1,9 @@
 <script lang="ts">
 	import { sharedContents } from '$lib/stores/sharedContents.svelte';
+	import { endpoints } from '$lib/api';
+	import { navigation } from '$lib/stores/navigation.svelte';
+	import { goto } from '$app/navigation';
+	import { toast } from '$lib/stores/toast.svelte';
 	import Button from '$lib/components/UI/Button/Button.svelte';
 	import Modal from '$lib/components/UI/Modal/Modal.svelte';
 	import { Folder as FolderIcon, FileText } from '@lucide/svelte';
@@ -14,9 +18,37 @@
 	const otherUser = direction === 'incoming' ? item.ownedByUsername : item.sharedWith;
 
 	let confirmOpen = $state(false);
+
+	const openFile = async (): Promise<void> => {
+		try {
+			const blob = await endpoints.getFileContent(item.id);
+			const url = URL.createObjectURL(blob);
+			window.open(url, '_blank');
+			setTimeout(() => URL.revokeObjectURL(url), 10000);
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : 'Failed to open file');
+		}
+	};
+
+	const enterFolder = async (): Promise<void> => {
+		try {
+			navigation.reset();
+			navigation.enter({ id: item.id, displayName: item.displayName });
+			goto(`/home/${navigation.urlPath}`);
+		} catch (err) {
+			toast.error(err instanceof Error ? err.message : 'Failed to open folder');
+		}
+	};
+
+	const handleOpen = () => (isFile(item) ? openFile() : enterFolder());
 </script>
 
-<div class="flex items-center gap-3 px-3 py-2.5 border border-border rounded-lg bg-surface-raised">
+<div
+	class="flex items-center gap-3 px-3 py-2.5 border border-border rounded-lg bg-surface-raised hover:border-accent/40 transition-colors cursor-pointer"
+	ondblclick={handleOpen}
+	role="button"
+	tabindex="0"
+>
 	{#if isFile(item)}
 		<FileText size={18} class="text-accent-secondary shrink-0" />
 	{:else}

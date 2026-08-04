@@ -44,7 +44,7 @@ func (s *Store) CreateShare(ctx context.Context, file sql.NullInt64, folder sql.
 
 func (s *Store) GetShareById(ctx context.Context, id int) (*Share, error) {
 	var share Share
-	err := s.db.QueryRowContext(ctx, "SELECT id, file, folder, shared_with, permission FROM Shares WHERE id = ?", id).Scan(&share.Id, &share.File, &share.Folder, &share.SharedWith, &share.Permission)
+	err := s.db.QueryRowContext(ctx, "SELECT id, file, folder, shared_with, permissions FROM Shares WHERE id = ?", id).Scan(&share.Id, &share.File, &share.Folder, &share.SharedWith, &share.Permission)
 	if err == sql.ErrNoRows {
 		return nil, ErrShareNotFound
 	}
