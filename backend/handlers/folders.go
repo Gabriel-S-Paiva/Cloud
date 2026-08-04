@@ -119,13 +119,14 @@ func (h *FolderHandler) GetFolderContents(w http.ResponseWriter, r *http.Request
 
 func (h *FolderHandler) UpdateFolder(w http.ResponseWriter, r *http.Request) {
 	var update UpdateFolderRequest
-	parent := sql.NullInt64{Int64: 0, Valid: false}
 	if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
 		utils.WriteJSONError(w, "Inavlid request body", http.StatusBadRequest)
 		return
 	}
+
+	var parent *sql.NullInt64
 	if update.ParentFolder != nil {
-		parent = sql.NullInt64{Int64: *update.ParentFolder, Valid: true}
+		parent = &sql.NullInt64{Int64: *update.ParentFolder, Valid: true}
 	}
 
 	id, err := strconv.Atoi(r.PathValue("id"))
@@ -153,7 +154,7 @@ func (h *FolderHandler) UpdateFolder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.store.UpdateFolder(r.Context(), id, update.DisplayName, &parent)
+	err = h.store.UpdateFolder(r.Context(), id, update.DisplayName, parent)
 	if err != nil {
 		utils.WriteJSONError(w, "Something went wrong", http.StatusInternalServerError)
 	}
