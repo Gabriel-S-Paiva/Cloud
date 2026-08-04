@@ -1,0 +1,12 @@
+*/*.db
+/backend/data/
+/data
+
+# Ignore all .env files (e.g., .env, .env.local, .env.production)
+*.env
+.env*
+
+# Un-ignore the template/example file explicitly
+!.env.example
+!example.env
+!*.example.env
