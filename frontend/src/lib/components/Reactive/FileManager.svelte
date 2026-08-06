@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { driveContents } from '$lib/stores/driveContents.svelte';
-	import ListView from './views/ListView.svelte';
-	import GridView from './views/GridView.svelte';
+	import ListView from '$lib/components/Reactive/views/ListView.svelte';
+	import GridView from '$lib/components/Reactive/views/GridView.svelte';
 	import Button from '$lib/components/UI/Button/Button.svelte';
 
 	let viewMode = $state<'list' | 'grid'>('list');
