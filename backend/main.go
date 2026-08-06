@@ -41,7 +41,7 @@ func main() {
 		log.Println("no .env file found, relying on system environment")
 	}
 
-	_, err := os.Stat("./data.db")
+	_, err := os.Stat("./data/data.db")
 	if os.IsNotExist(err) {
 		databaseInit()
 	} else if err == nil {
@@ -50,7 +50,7 @@ func main() {
 		log.Fatal("Error: ", err)
 	}
 
-	db, err := sql.Open("sqlite", "./data.db")
+	db, err := sql.Open("sqlite", "./data/data.db")
 	if err != nil {
 		log.Fatal(err)
 	}
