@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - backend/.env
+    volumes:
+      - backend_data:/app/backend/data
+    restart: unless-stopped
+    networks: [internal]
+
+  caddy:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks: [internal]
+
+volumes:
+  backend_data:
+
+networks:
+  internal:
