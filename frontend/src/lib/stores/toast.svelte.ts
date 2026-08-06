@@ -2,10 +2,12 @@ import type { ToastItem, ToastVariant } from "$lib/types";
 
 class Toast {
   toastQueue = $state<ToastItem[]>([]);
+  private nextId = 1;
+
   get queue() { return this.toastQueue; }
 
   private push(message: string, variant: ToastVariant, durationMs: number) {
-    const id = crypto.randomUUID();
+    const id = (this.nextId++).toString();
     this.toastQueue.push({ id, message, durationMs, variant });
   }
 
