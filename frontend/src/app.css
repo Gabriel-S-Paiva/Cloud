@@ -3,7 +3,7 @@
 
 @font-face {
   font-family: 'Fraunces';
-  src: url('/fonts/Fraunces-Variable.woff2') format('woff2-variations');
+  src: url('/fonts/fraunces-latin-wght-normal.woff2') format('woff2-variations');
   font-weight: 300 700;
   font-style: normal;
   font-display: swap;
@@ -11,15 +11,23 @@
 
 @font-face {
   font-family: 'Public Sans';
-  src: url('/fonts/PublicSans-Variable.woff2') format('woff2-variations');
-  font-weight: 400 700;
+  src: url('/fonts/public-sans-latin-400-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Public Sans';
+  src: url('/fonts/public-sans-latin-700-normal.woff2') format('woff2');
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'JetBrains Mono';
-  src: url('/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+  src: url('/fonts/jetbrains-mono-latin-400-normal.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -27,7 +35,7 @@
 
 @font-face {
   font-family: 'JetBrains Mono';
-  src: url('/fonts/JetBrainsMono-Medium.woff2') format('woff2');
+  src: url('/fonts/jetbrains-mono-latin-500-normal.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
