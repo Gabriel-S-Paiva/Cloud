@@ -2,7 +2,7 @@
 
 A self-hosted family cloud storage app, built from scratch to learn a new stack, end to end.
 
-[Owned Cloud screenshot](docs/screenshot.png)
+![Owned Cloud screenshot](docs/screenshot.png)
 
 ## What it is
 
