@@ -90,8 +90,9 @@ This is an active, evolving personal project, not production software. Current s
 
 - ✅ Core features working end-to-end (auth, folders, files, sharing, quotas, admin)
 - ✅ Deployed to a home server (Docker Compose + Caddy, LAN-first)
-- 🚧 No automated tests yet
-- 🚧 No CI/CD yet
+- ✅ Automated tests (missing frontend testing)
+- ✅ CI/CD
+- 🚧 More tools for Drive managing
 
 **Planned next:**
 - **v3** → Vitest (frontend tests) + GitHub Actions CI/CD
