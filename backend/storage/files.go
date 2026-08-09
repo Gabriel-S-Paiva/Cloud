@@ -191,7 +191,16 @@ func (s *Store) DeleteFile(ctx context.Context, id int) error {
 		return err
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	path := filepath.Join(storageDir, strconv.Itoa(id))
+	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Store) FileOwnership(ctx context.Context, fileId int, userId int) (*File, error) {
