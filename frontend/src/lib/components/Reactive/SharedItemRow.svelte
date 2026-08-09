@@ -14,9 +14,7 @@
 		$props();
 
 	const isFile = (i: SharedFolder | SharedFile): i is SharedFile => 'size' in i;
-	const otherUser = $derived(
-		direction === 'incoming' ? item.ownedByUsername : item.sharedWith
-	);
+	const otherUser = $derived(direction === 'incoming' ? item.ownedByUsername : item.sharedWith);
 
 	let confirmOpen = $state(false);
 

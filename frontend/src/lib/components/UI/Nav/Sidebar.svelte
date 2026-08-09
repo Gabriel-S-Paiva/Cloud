@@ -22,7 +22,9 @@
 		{ href: '/shares/incoming' as const, label: 'Shared With Me', icon: Share2 },
 		{ href: '/shares/outgoing' as const, label: 'Manage Shares', icon: Share2 },
 		{ href: '/profile' as const, label: 'Profile', icon: CircleUser },
-		...(auth.user?.role === 'Admin' ? [{ href: '/admin' as const, label: 'Admin', icon: ShieldCheck }] : [])
+		...(auth.user?.role === 'Admin'
+			? [{ href: '/admin' as const, label: 'Admin', icon: ShieldCheck }]
+			: [])
 	]);
 
 	const isActive = (href: string) => page.url.pathname === href;
