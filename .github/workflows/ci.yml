@@ -53,7 +53,7 @@ jobs:
         run: pnpm run lint
 
       - name: Create .env
-        run: cp .env.example .env
+        run: cp example.env .env
 
       - name: Type check
         run: pnpm run check
@@ -61,3 +61,6 @@ jobs:
       - name: Build
         run: pnpm run build
         
+    # Action for when I finish vitest
+    # - name: Test
+    #   run: pnpm run test
