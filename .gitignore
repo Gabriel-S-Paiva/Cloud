@@ -1,6 +1,7 @@
 */*.db
 /backend/data/
 /data
+/.vscode
 
 # Ignore all .env files (e.g., .env, .env.local, .env.production)
 *.env

@@ -15,5 +15,5 @@
 {#if isFile(item)}
 	<FileItem file={item} {variant} />
 {:else}
-	<FolderItem folder={item} {variant} />
+	<FolderItem folder={item} />
 {/if}

@@ -5,6 +5,7 @@
 	import { User, Lock, Eye, EyeOff } from '@lucide/svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import Toast from '$lib/components/UI/Toast/Toast.svelte';
+	import { resolve } from '$app/paths';
 
 	let mode = $state<'login' | 'register'>('login');
 
@@ -22,9 +23,13 @@
 		try {
 			await auth.login(loginUsername, loginPassword);
 			toast.success('Login successfull.');
-			goto('/home');
+			goto(resolve('/home/'));
 		} catch (err) {
-			err instanceof Error ? toast.error(err.message) : toast.error('Login failed');
+			if (err instanceof Error) {
+				toast.error(err.message);
+			} else {
+				toast.error('Login Failed');
+			}
 		}
 	}
 
@@ -34,7 +39,11 @@
 			await auth.register(registerUsername, registerPassword);
 			toast.success('Account created - waiting for admin approval.');
 		} catch (err) {
-			err instanceof Error ? toast.error(err.message) : toast.error('Registration failed');
+			if (err instanceof Error) {
+				toast.error(err.message);
+			} else {
+				toast.error('Registration failed');
+			}
 		}
 	}
 </script>

@@ -8,6 +8,7 @@
 	import { driveContents } from '$lib/stores/driveContents.svelte';
 	import { onMount } from 'svelte';
 	import FileManager from '$lib/components/Reactive/FileManager.svelte';
+	import { resolve } from '$app/paths';
 
 	let loaded = $state(false);
 	let selectedFiles = $state<FileList | null>(null);
@@ -17,7 +18,7 @@
 	onMount(() => {
 		const urlSegments = page.params.path?.split('/').filter(Boolean) ?? [];
 		if (urlSegments.length > 0 && navigation.path.length === 0) {
-			goto('/home');
+			goto(resolve('/home/'));
 			return;
 		}
 		driveContents.loadSharableUsers();
@@ -111,7 +112,7 @@
 				: ''}"
 			onclick={() => {
 				navigation.goToDepth(-1);
-				goto('/home');
+				goto(resolve('/home/'));
 			}}
 			ondragover={(e) => e.preventDefault()}
 			ondragenter={(e) => {
@@ -123,7 +124,7 @@
 		>
 			Home
 		</button>
-		{#each navigation.path as segment, i}
+		{#each navigation.path as segment, i (segment.id)}
 			<span>/</span>
 			<button
 				class="rounded px-1.5 py-0.5 hover:text-text {dragOverCrumb === segment.id
@@ -131,7 +132,7 @@
 					: ''}"
 				onclick={() => {
 					navigation.goToDepth(i);
-					goto(`/home/${navigation.urlPath}`);
+					goto(resolve(`/home/${navigation.urlPath}`));
 				}}
 				ondragover={(e) => e.preventDefault()}
 				ondragenter={(e) => {

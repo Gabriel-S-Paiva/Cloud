@@ -7,14 +7,12 @@
 	import { toast } from '$lib/stores/toast.svelte';
 	import type { Folder } from '$lib/types';
 	import { Folder as FolderIcon } from '@lucide/svelte';
+	import { resolve } from '$app/paths';
 
-	let { folder, variant }: { folder: Folder; variant: 'list' | 'grid' } = $props();
+	let { folder }: { folder: Folder } = $props();
 
 	let isEditing = $state(false);
-	let editName = $state(folder.displayName);
-	$effect(() => {
-		editName = folder.displayName;
-	});
+	let editName = $derived(folder.displayName);
 
 	let isModalOpen = $state(false);
 	let activeModalTab = $state<'actions' | 'info' | 'delete' | 'share'>('actions');
@@ -58,9 +56,13 @@
 	const enterFolder = async (id: number, displayName: string): Promise<void> => {
 		try {
 			navigation.enter({ id, displayName });
-			goto(`/home/${navigation.urlPath}`);
+			goto(resolve(`/home/${navigation.urlPath}`));
 		} catch (err) {
-			err instanceof Error ? toast.error(err.message) : toast.error('Folder fetch failed');
+			if (err instanceof Error) {
+				toast.error(err.message);
+			} else {
+				toast.error('Folder fetch failed');
+			}
 		}
 	};
 

@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import Button from '$lib/components/UI/Button/Button.svelte';
 	import { LogOut } from '@lucide/svelte';
+	import { resolve } from '$app/paths';
 
 	const formatBytes = (bytes: number) => {
 		if (bytes === 0) return '0 B';
@@ -17,7 +18,7 @@
 
 	const logout = async () => {
 		await auth.logout();
-		goto('/login');
+		goto(resolve('/login'));
 	};
 </script>
 

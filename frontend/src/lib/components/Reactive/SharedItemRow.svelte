@@ -3,6 +3,7 @@
 	import { endpoints } from '$lib/api';
 	import { navigation } from '$lib/stores/navigation.svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { toast } from '$lib/stores/toast.svelte';
 	import Button from '$lib/components/UI/Button/Button.svelte';
 	import Modal from '$lib/components/UI/Modal/Modal.svelte';
@@ -13,7 +14,9 @@
 		$props();
 
 	const isFile = (i: SharedFolder | SharedFile): i is SharedFile => 'size' in i;
-	const otherUser = direction === 'incoming' ? item.ownedByUsername : item.sharedWith;
+	const otherUser = $derived(
+		direction === 'incoming' ? item.ownedByUsername : item.sharedWith
+	);
 
 	let confirmOpen = $state(false);
 
@@ -32,7 +35,7 @@
 		try {
 			navigation.reset();
 			navigation.enter({ id: item.id, displayName: item.displayName });
-			goto(`/home/${navigation.urlPath}`);
+			goto(resolve(`/home/${navigation.urlPath}`));
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : 'Failed to open folder');
 		}

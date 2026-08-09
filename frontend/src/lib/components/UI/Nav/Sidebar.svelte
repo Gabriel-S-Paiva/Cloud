@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { auth } from '$lib/stores/auth.svelte';
 	import {
@@ -17,18 +18,18 @@
 	let collapsed = $state(false);
 
 	const links = $derived([
-		{ href: '/home', label: 'Files', icon: FolderOpen },
-		{ href: '/shares/incoming', label: 'Shared With Me', icon: Share2 },
-		{ href: '/shares/outgoing', label: 'Manage Shares', icon: Share2 },
-		{ href: '/profile', label: 'Profile', icon: CircleUser },
-		...(auth.user?.role === 'Admin' ? [{ href: '/admin', label: 'Admin', icon: ShieldCheck }] : [])
+		{ href: '/home/' as const, label: 'Files', icon: FolderOpen },
+		{ href: '/shares/incoming' as const, label: 'Shared With Me', icon: Share2 },
+		{ href: '/shares/outgoing' as const, label: 'Manage Shares', icon: Share2 },
+		{ href: '/profile' as const, label: 'Profile', icon: CircleUser },
+		...(auth.user?.role === 'Admin' ? [{ href: '/admin' as const, label: 'Admin', icon: ShieldCheck }] : [])
 	]);
 
 	const isActive = (href: string) => page.url.pathname === href;
 
 	const logout = async () => {
 		await auth.logout();
-		goto('/login');
+		goto(resolve('/login'));
 	};
 </script>
 
@@ -46,7 +47,7 @@
 
 	<div class="mb-4 px-3">
 		<button
-			onclick={() => goto('/home')}
+			onclick={() => goto(resolve('/home/'))}
 			class="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-accent text-sm font-medium text-surface"
 		>
 			<Plus size={16} />
@@ -57,7 +58,7 @@
 	<nav class="flex flex-1 flex-col gap-1 px-2">
 		{#each links as { href, label, icon: Icon } (href)}
 			<button
-				onclick={() => goto(href)}
+				onclick={() => goto(resolve(href))}
 				class="relative flex h-10 items-center gap-3 rounded-md px-3 text-sm transition-colors {isActive(
 					href
 				)

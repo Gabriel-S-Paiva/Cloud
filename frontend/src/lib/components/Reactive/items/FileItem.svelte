@@ -10,10 +10,7 @@
 	let { file, variant }: { file: CloudFile; variant: 'list' | 'grid' } = $props();
 
 	let isEditing = $state(false);
-	let editName = $state(file.displayName);
-	$effect(() => {
-		editName = file.displayName;
-	});
+	let editName = $derived(file.displayName);
 	let isModalOpen = $state(false);
 	let activeModalTab = $state<'actions' | 'info' | 'delete' | 'share'>('actions');
 
@@ -65,6 +62,15 @@
 		e.preventDefault();
 		openModal('actions');
 	};
+
+	let inputRef = $state<HTMLInputElement | null>(null);
+
+	$effect(() => {
+		if (inputRef) {
+			inputRef.focus();
+			inputRef.select();
+		}
+	});
 </script>
 
 <div
@@ -90,11 +96,11 @@
 		{#if isEditing}
 			<input
 				type="text"
+				bind:this={inputRef}
 				bind:value={editName}
 				onkeydown={handleKeyDown}
 				onblur={handleRename}
 				onclick={(e) => e.stopPropagation()}
-				autofocus
 				class="w-full border-b border-accent bg-transparent text-sm text-text outline-none"
 			/>
 		{:else}

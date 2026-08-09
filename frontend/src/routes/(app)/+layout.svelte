@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import Sidebar from '$lib/components/UI/Nav/Sidebar.svelte';
 	import Toast from '$lib/components/UI/Toast/Toast.svelte';
+	import { resolve } from '$app/paths';
 
 	let { children } = $props();
 	let checked = $state(false);
@@ -15,7 +16,7 @@
 
 	$effect(() => {
 		if (checked && !auth.isLoggedIn) {
-			goto('/login');
+			goto(resolve('/login'));
 		}
 	});
 </script>

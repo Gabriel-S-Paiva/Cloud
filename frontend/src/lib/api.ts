@@ -1,4 +1,5 @@
 import { goto } from '$app/navigation';
+import { resolve } from '$app/paths';
 import type {
 	User,
 	Folder,
@@ -25,7 +26,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 	});
 
 	if (response.status === 401) {
-		goto('/login');
+		goto(resolve('/login'));
 		throw new Error('Session expired. Please log in again.');
 	}
 

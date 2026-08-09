@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { auth } from '$lib/stores/auth.svelte';
 	import Button from '$lib/components/UI/Button/Button.svelte';
 	import LedgerPreview from '$lib/components/Marketing/LedgerPreview.svelte';
 	import { Share2, Gauge, ShieldCheck, Server } from '@lucide/svelte';
+	import { resolve } from '$app/paths';
 
 	const REPO_URL = 'https://github.com/Gabriel-S-Paiva/Cloud';
 
@@ -37,7 +36,9 @@
 <div class="min-h-screen bg-surface">
 	<nav class="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
 		<span class="font-display text-lg text-text">Owned Cloud</span>
-		<a href="/login" class="text-sm text-text-muted transition-colors hover:text-text">Sign in</a>
+		<a href={resolve('/login')} class="text-sm text-text-muted transition-colors hover:text-text"
+			>Sign in</a
+		>
 	</nav>
 
 	<section class="mx-auto grid max-w-5xl items-center gap-12 px-6 pt-10 pb-20 md:grid-cols-2">
@@ -53,7 +54,7 @@
 				with no third party holding your family's data.
 			</p>
 			<div class="flex items-center gap-3">
-				<Button onclick={() => goto('/login')}>Sign in</Button>
+				<Button onclick={() => goto(resolve('/login'))}>Sign in</Button>
 				<a href={REPO_URL} target="_blank" rel="noreferrer">
 					<Button variant="secondary">View source</Button>
 				</a>
