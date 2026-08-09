@@ -1,80 +1,92 @@
 interface User {
-    id: number
-    username: string
-    role: 'User' | 'Admin'
-    quota: number
-    quotaUsed: number
-    rootFolderId: number
+	id: number;
+	username: string;
+	role: 'User' | 'Admin';
+	quota: number;
+	quotaUsed: number;
+	rootFolderId: number;
 }
 
 interface UserSummary {
-    id: number
-    username: string
+	id: number;
+	username: string;
 }
 
 interface Folder {
-    id: number,
-    displayName: string
-    ownedBy: number
-    parentFolder: number|null
+	id: number;
+	displayName: string;
+	ownedBy: number;
+	parentFolder: number | null;
 }
 
 interface SharedFolder extends Folder {
-    shareId: number
-    sharedWith: string
-    ownedByUsername: string
-    permissions: string
+	shareId: number;
+	sharedWith: string;
+	ownedByUsername: string;
+	permissions: string;
 }
 
 interface CloudFile {
-    id: number
-    displayName: string
-    ownedBy: number
-    size: number
-    bytesReceived: number
-    status: 'Uploading' | 'Complete'
-    contentType: string
-    uploadedAt: number
-    lastModified: number
-    parentFolder: number|null
+	id: number;
+	displayName: string;
+	ownedBy: number;
+	size: number;
+	bytesReceived: number;
+	status: 'Uploading' | 'Complete';
+	contentType: string;
+	uploadedAt: number;
+	lastModified: number;
+	parentFolder: number | null;
 }
 
 interface SharedFile extends CloudFile {
-    shareId: number
-    sharedWith: string
-    ownedByUsername: string
-    permissions: string
+	shareId: number;
+	sharedWith: string;
+	ownedByUsername: string;
+	permissions: string;
 }
 
 interface FolderContents {
-    folders: Folder[]
-    files: CloudFile[]
+	folders: Folder[];
+	files: CloudFile[];
 }
 
 interface SharedContents {
-    folders: SharedFolder[]
-    files: SharedFile[]
+	folders: SharedFolder[];
+	files: SharedFile[];
 }
 
 interface RegisterRequest {
-    id: number
-    username: string
-    status: 'Pending' | 'Rejected'
+	id: number;
+	username: string;
+	status: 'Pending' | 'Rejected';
 }
 
 interface PathSegment {
-  id: number;
-  displayName: string;
+	id: number;
+	displayName: string;
 }
 
-type ToastVariant = 'info' | 'success' | 'warning' | 'error'
-
+type ToastVariant = 'info' | 'success' | 'warning' | 'error';
 
 interface ToastItem {
-    id: string
-    message: string
-    durationMs: number
-    variant: ToastVariant
+	id: string;
+	message: string;
+	durationMs: number;
+	variant: ToastVariant;
 }
 
-export type { User, Folder, CloudFile, FolderContents, RegisterRequest, PathSegment, SharedContents, SharedFile, SharedFolder, UserSummary, ToastItem, ToastVariant }
+export type {
+	User,
+	Folder,
+	CloudFile,
+	FolderContents,
+	RegisterRequest,
+	PathSegment,
+	SharedContents,
+	SharedFile,
+	SharedFolder,
+	UserSummary,
+	ToastItem,
+	ToastVariant
+};

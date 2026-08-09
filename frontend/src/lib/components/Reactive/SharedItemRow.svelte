@@ -9,10 +9,8 @@
 	import { Folder as FolderIcon, FileText } from '@lucide/svelte';
 	import type { SharedFolder, SharedFile } from '$lib/types';
 
-	let {
-		item,
-		direction
-	}: { item: SharedFolder | SharedFile; direction: 'incoming' | 'outgoing' } = $props();
+	let { item, direction }: { item: SharedFolder | SharedFile; direction: 'incoming' | 'outgoing' } =
+		$props();
 
 	const isFile = (i: SharedFolder | SharedFile): i is SharedFile => 'size' in i;
 	const otherUser = direction === 'incoming' ? item.ownedByUsername : item.sharedWith;
@@ -44,21 +42,22 @@
 </script>
 
 <div
-	class="flex items-center gap-3 px-3 py-2.5 border border-border rounded-lg bg-surface-raised hover:border-accent/40 transition-colors cursor-pointer"
+	class="flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-surface-raised px-3 py-2.5 transition-colors hover:border-accent/40"
 	ondblclick={handleOpen}
 	role="button"
 	tabindex="0"
 >
 	{#if isFile(item)}
-		<FileText size={18} class="text-accent-secondary shrink-0" />
+		<FileText size={18} class="shrink-0 text-accent-secondary" />
 	{:else}
-		<FolderIcon size={18} class="text-accent shrink-0" />
+		<FolderIcon size={18} class="shrink-0 text-accent" />
 	{/if}
 
 	<span class="flex-1 truncate text-sm text-text">{item.displayName}</span>
 
-	<span class="text-xs text-text-muted shrink-0 hidden sm:inline">
-		{direction === 'incoming' ? 'from' : 'with'} {otherUser}
+	<span class="hidden shrink-0 text-xs text-text-muted sm:inline">
+		{direction === 'incoming' ? 'from' : 'with'}
+		{otherUser}
 	</span>
 
 	{#if direction === 'outgoing'}
@@ -66,14 +65,14 @@
 			value={item.permissions}
 			onchange={(e) =>
 				sharedContents.updatePermission(item.shareId, e.currentTarget.value as 'Edit' | 'View')}
-			class="h-8 rounded-md border border-border bg-surface px-2 text-xs text-text shrink-0"
+			class="h-8 shrink-0 rounded-md border border-border bg-surface px-2 text-xs text-text"
 		>
 			<option value="View">View</option>
 			<option value="Edit">Edit</option>
 		</select>
 	{:else}
 		<span
-			class="text-xs px-2 py-1 rounded-full border shrink-0"
+			class="shrink-0 rounded-full border px-2 py-1 text-xs"
 			style={item.permissions === 'Edit'
 				? 'color: var(--accent-secondary); border-color: var(--accent-secondary);'
 				: 'color: var(--text-muted); border-color: var(--border);'}

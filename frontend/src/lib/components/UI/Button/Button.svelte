@@ -7,21 +7,16 @@
 		children?: Snippet;
 	}
 
-	let { 
-		variant = 'primary', 
-		children, 
-		type = 'button', 
-		class: className = '', 
-		...restProps 
+	let {
+		variant = 'primary',
+		children,
+		type = 'button',
+		class: className = '',
+		...restProps
 	}: Props = $props();
 </script>
 
-<button
-	{type}
-	data-variant={variant}
-	class="btn {className}"
-	{...restProps}
->
+<button {type} data-variant={variant} class="btn {className}" {...restProps}>
 	{@render children?.()}
 </button>
 
@@ -33,7 +28,9 @@
 		font-size: 0.875rem;
 		font-weight: 500;
 		font-family: var(--font-body);
-		transition: opacity 0.15s ease, background-color 0.15s ease;
+		transition:
+			opacity 0.15s ease,
+			background-color 0.15s ease;
 	}
 	.btn:active {
 		transform: scale(0.98);

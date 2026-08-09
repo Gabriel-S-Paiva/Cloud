@@ -9,10 +9,16 @@
 
 <div>
 	<div>
-		<Button variant={viewMode === 'list' ? 'primary' : 'secondary'} onclick={() => (viewMode = 'list')}>
+		<Button
+			variant={viewMode === 'list' ? 'primary' : 'secondary'}
+			onclick={() => (viewMode = 'list')}
+		>
 			List
 		</Button>
-		<Button variant={viewMode === 'grid' ? 'primary' : 'secondary'} onclick={() => (viewMode = 'grid')}>
+		<Button
+			variant={viewMode === 'grid' ? 'primary' : 'secondary'}
+			onclick={() => (viewMode = 'grid')}
+		>
 			Grid
 		</Button>
 	</div>

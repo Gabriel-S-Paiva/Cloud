@@ -2,85 +2,85 @@
 @plugin '@tailwindcss/forms';
 
 @font-face {
-  font-family: 'Fraunces';
-  src: url('/fonts/fraunces-latin-wght-normal.woff2') format('woff2-variations');
-  font-weight: 300 700;
-  font-style: normal;
-  font-display: swap;
+	font-family: 'Fraunces';
+	src: url('/fonts/fraunces-latin-wght-normal.woff2') format('woff2-variations');
+	font-weight: 300 700;
+	font-style: normal;
+	font-display: swap;
 }
 
 @font-face {
-  font-family: 'Public Sans';
-  src: url('/fonts/public-sans-latin-400-normal.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
+	font-family: 'Public Sans';
+	src: url('/fonts/public-sans-latin-400-normal.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
 }
 
 @font-face {
-  font-family: 'Public Sans';
-  src: url('/fonts/public-sans-latin-700-normal.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
+	font-family: 'Public Sans';
+	src: url('/fonts/public-sans-latin-700-normal.woff2') format('woff2');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
 }
 
 @font-face {
-  font-family: 'JetBrains Mono';
-  src: url('/fonts/jetbrains-mono-latin-400-normal.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
+	font-family: 'JetBrains Mono';
+	src: url('/fonts/jetbrains-mono-latin-400-normal.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
 }
 
 @font-face {
-  font-family: 'JetBrains Mono';
-  src: url('/fonts/jetbrains-mono-latin-500-normal.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
+	font-family: 'JetBrains Mono';
+	src: url('/fonts/jetbrains-mono-latin-500-normal.woff2') format('woff2');
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
 }
 
 :root {
-  --surface: #EDEFEA;
-  --surface-raised: #FFFFFF;
-  --border: #D9DED6;
-  --text: #1E2A22;
-  --text-muted: #8A8578;
-  --accent: #4B6F52;
-  --accent-secondary: #A9812E;
-  --info: #6B7A82;
-  --danger: #A8442C;
+	--surface: #edefea;
+	--surface-raised: #ffffff;
+	--border: #d9ded6;
+	--text: #1e2a22;
+	--text-muted: #8a8578;
+	--accent: #4b6f52;
+	--accent-secondary: #a9812e;
+	--info: #6b7a82;
+	--danger: #a8442c;
 
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'Public Sans', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+	--font-display: 'Fraunces', Georgia, serif;
+	--font-body: 'Public Sans', system-ui, sans-serif;
+	--font-mono: 'JetBrains Mono', monospace;
 }
 
-[data-theme="dark"] {
-  --surface: #1B2420;
-  --surface-raised: #232E28;
-  --border: #34413A;
-  --text: #E8EAE5;
-  --text-muted: #9BA598;
-  --accent: #6B9472;
-  --accent-secondary: #C79A45;
-  --info: #8FA0A8;
-  --danger: #C2604A;
+[data-theme='dark'] {
+	--surface: #1b2420;
+	--surface-raised: #232e28;
+	--border: #34413a;
+	--text: #e8eae5;
+	--text-muted: #9ba598;
+	--accent: #6b9472;
+	--accent-secondary: #c79a45;
+	--info: #8fa0a8;
+	--danger: #c2604a;
 }
 
 @theme inline {
-  --color-surface: var(--surface);
-  --color-surface-raised: var(--surface-raised);
-  --color-border: var(--border);
-  --color-text: var(--text);
-  --color-text-muted: var(--text-muted);
-  --color-accent: var(--accent);
-  --color-accent-secondary: var(--accent-secondary);
-  --color-info: var(--info);
-  --color-danger: var(--danger);
+	--color-surface: var(--surface);
+	--color-surface-raised: var(--surface-raised);
+	--color-border: var(--border);
+	--color-text: var(--text);
+	--color-text-muted: var(--text-muted);
+	--color-accent: var(--accent);
+	--color-accent-secondary: var(--accent-secondary);
+	--color-info: var(--info);
+	--color-danger: var(--danger);
 
-  --font-display: var(--font-display);
-  --font-body: var(--font-body);
-  --font-mono: var(--font-mono);
+	--font-display: var(--font-display);
+	--font-body: var(--font-body);
+	--font-mono: var(--font-mono);
 }

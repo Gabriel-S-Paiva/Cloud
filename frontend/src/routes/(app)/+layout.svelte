@@ -21,7 +21,7 @@
 </script>
 
 {#if checked}
-	<div class="flex bg-surface min-h-screen">
+	<div class="flex min-h-screen bg-surface">
 		<Sidebar />
 		<main class="flex-1 overflow-y-auto">
 			{@render children()}

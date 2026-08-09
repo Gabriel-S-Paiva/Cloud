@@ -12,7 +12,7 @@
 </script>
 
 {#if items.length === 0}
-	<p class="text-text-muted text-sm p-4">No content</p>
+	<p class="p-4 text-sm text-text-muted">No content</p>
 {:else}
 	<ul>
 		{#each items as item (isFile(item) ? `file-${item.id}` : `folder-${item.id}`)}

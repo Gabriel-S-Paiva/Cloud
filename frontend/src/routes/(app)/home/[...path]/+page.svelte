@@ -104,13 +104,15 @@
 </script>
 
 <div class="p-6">
-	<nav class="flex items-center gap-1 text-sm text-text-muted mb-4">
+	<nav class="mb-4 flex items-center gap-1 text-sm text-text-muted">
 		<button
-			class="hover:text-text px-1.5 py-0.5 rounded {dragOverCrumb === auth.user?.rootFolderId ? 'bg-accent/10 text-accent' : ''}"
+			class="rounded px-1.5 py-0.5 hover:text-text {dragOverCrumb === auth.user?.rootFolderId
+				? 'bg-accent/10 text-accent'
+				: ''}"
 			onclick={() => {
-					navigation.goToDepth(-1)
-					goto('/home')
-				}}
+				navigation.goToDepth(-1);
+				goto('/home');
+			}}
 			ondragover={(e) => e.preventDefault()}
 			ondragenter={(e) => {
 				e.preventDefault();
@@ -124,7 +126,9 @@
 		{#each navigation.path as segment, i}
 			<span>/</span>
 			<button
-				class="hover:text-text px-1.5 py-0.5 rounded {dragOverCrumb === segment.id ? 'bg-accent/10 text-accent' : ''}"
+				class="rounded px-1.5 py-0.5 hover:text-text {dragOverCrumb === segment.id
+					? 'bg-accent/10 text-accent'
+					: ''}"
 				onclick={() => {
 					navigation.goToDepth(i);
 					goto(`/home/${navigation.urlPath}`);
@@ -142,11 +146,16 @@
 		{/each}
 	</nav>
 
-	<div class="flex items-center gap-2 mb-4">
-		<button class="h-9 px-3 rounded-md bg-accent text-surface text-sm font-medium" onclick={createFolder}>
+	<div class="mb-4 flex items-center gap-2">
+		<button
+			class="h-9 rounded-md bg-accent px-3 text-sm font-medium text-surface"
+			onclick={createFolder}
+		>
 			+ New Folder
 		</button>
-		<label class="h-9 px-3 rounded-md border border-border text-sm text-text flex items-center cursor-pointer">
+		<label
+			class="flex h-9 cursor-pointer items-center rounded-md border border-border px-3 text-sm text-text"
+		>
 			Upload
 			<input type="file" class="hidden" bind:files={selectedFiles} onchange={createFile} />
 		</label>
@@ -154,7 +163,7 @@
 
 	{#if uploadProgress}
 		<div class="mb-4">
-			<div class="h-1 bg-border rounded-full overflow-hidden">
+			<div class="h-1 overflow-hidden rounded-full bg-border">
 				<div
 					class="h-full bg-accent transition-[width] duration-150"
 					style="width: {(uploadProgress.uploaded / uploadProgress.total) * 100}%"
@@ -169,6 +178,6 @@
 	{#if loaded}
 		<FileManager />
 	{:else}
-		<p class="text-text-muted text-sm">Loading…</p>
+		<p class="text-sm text-text-muted">Loading…</p>
 	{/if}
 </div>

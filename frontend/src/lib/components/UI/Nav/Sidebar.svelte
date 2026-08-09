@@ -33,33 +33,39 @@
 </script>
 
 <aside
-	class="h-screen border-r border-border bg-surface-raised flex flex-col transition-[width] duration-150 {collapsed ? 'w-16' : 'w-56'}"
+	class="flex h-screen flex-col border-r border-border bg-surface-raised transition-[width] duration-150 {collapsed
+		? 'w-16'
+		: 'w-56'}"
 >
-	<div class="flex items-center gap-2 px-4 h-16 shrink-0">
-		<Cloud size={22} class="text-accent shrink-0" />
+	<div class="flex h-16 shrink-0 items-center gap-2 px-4">
+		<Cloud size={22} class="shrink-0 text-accent" />
 		{#if !collapsed}
-			<span class="font-display text-lg text-text truncate">Owned Cloud</span>
+			<span class="truncate font-display text-lg text-text">Owned Cloud</span>
 		{/if}
 	</div>
 
-	<div class="px-3 mb-4">
+	<div class="mb-4 px-3">
 		<button
 			onclick={() => goto('/home')}
-			class="w-full h-10 rounded-md bg-accent text-surface flex items-center justify-center gap-2 text-sm font-medium"
+			class="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-accent text-sm font-medium text-surface"
 		>
 			<Plus size={16} />
 			{#if !collapsed}New{/if}
 		</button>
 	</div>
 
-	<nav class="flex-1 px-2 flex flex-col gap-1">
+	<nav class="flex flex-1 flex-col gap-1 px-2">
 		{#each links as { href, label, icon: Icon } (href)}
 			<button
 				onclick={() => goto(href)}
-				class="relative h-10 rounded-md flex items-center gap-3 px-3 text-sm transition-colors {isActive(href) ? 'text-accent bg-accent/10' : 'text-text-muted hover:text-text hover:bg-surface'}"
+				class="relative flex h-10 items-center gap-3 rounded-md px-3 text-sm transition-colors {isActive(
+					href
+				)
+					? 'bg-accent/10 text-accent'
+					: 'text-text-muted hover:bg-surface hover:text-text'}"
 			>
 				{#if isActive(href)}
-					<span class="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-accent rounded-full"></span>
+					<span class="absolute top-1.5 bottom-1.5 left-0 w-0.5 rounded-full bg-accent"></span>
 				{/if}
 				<Icon size={18} class="shrink-0" />
 				{#if !collapsed}<span class="truncate">{label}</span>{/if}
@@ -67,17 +73,17 @@
 		{/each}
 	</nav>
 
-	<div class="px-2 pb-3 flex flex-col gap-1 border-t border-border pt-3">
+	<div class="flex flex-col gap-1 border-t border-border px-2 pt-3 pb-3">
 		<button
 			onclick={logout}
-			class="h-10 rounded-md flex items-center gap-3 px-3 text-sm text-text-muted hover:text-danger transition-colors"
+			class="flex h-10 items-center gap-3 rounded-md px-3 text-sm text-text-muted transition-colors hover:text-danger"
 		>
 			<LogOut size={18} class="shrink-0" />
 			{#if !collapsed}Logout{/if}
 		</button>
 		<button
 			onclick={() => (collapsed = !collapsed)}
-			class="h-10 rounded-md flex items-center gap-3 px-3 text-sm text-text-muted hover:text-text transition-colors"
+			class="flex h-10 items-center gap-3 rounded-md px-3 text-sm text-text-muted transition-colors hover:text-text"
 		>
 			{#if collapsed}
 				<ChevronsRight size={18} />

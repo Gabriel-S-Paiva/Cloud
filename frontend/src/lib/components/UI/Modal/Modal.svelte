@@ -17,13 +17,13 @@
 <svelte:window onkeydown={handleKeyDown} />
 
 {#if open}
-	<div 
-		class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
 		onclick={onclose}
 		role="presentation"
 	>
-		<div 
-			class="bg-surface-raised border border-border rounded-xl p-6 max-w-md w-full"
+		<div
+			class="w-full max-w-md rounded-xl border border-border bg-surface-raised p-6"
 			style="box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);"
 			onclick={(e) => e.stopPropagation()}
 			role="dialog"

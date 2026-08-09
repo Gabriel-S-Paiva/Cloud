@@ -94,14 +94,16 @@
 	}}
 	ondragleave={() => (isDragOver = false)}
 	ondrop={handleDrop}
-	class="group border rounded-lg bg-surface-raised transition-colors select-none cursor-pointer flex items-center justify-between gap-3 px-3 py-2.5 {isDragOver ? 'border-accent bg-accent/10' : 'border-border hover:border-accent/40'}"
+	class="group flex cursor-pointer items-center justify-between gap-3 rounded-lg border bg-surface-raised px-3 py-2.5 transition-colors select-none {isDragOver
+		? 'border-accent bg-accent/10'
+		: 'border-border hover:border-accent/40'}"
 	ondblclick={() => enterFolder(folder.id, folder.displayName)}
 	oncontextmenu={handleContextMenu}
 	role="button"
 	tabindex="0"
 >
 	<div class="flex items-center gap-3 truncate">
-		<FolderIcon size={18} class="text-accent shrink-0" />
+		<FolderIcon size={18} class="shrink-0 text-accent" />
 		{#if isEditing}
 			<input
 				type="text"
@@ -110,7 +112,7 @@
 				onblur={() => handleRename()}
 				onclick={(e) => e.stopPropagation()}
 				use:focus
-				class="bg-transparent border-b border-accent outline-none text-sm text-text"
+				class="border-b border-accent bg-transparent text-sm text-text outline-none"
 			/>
 		{:else}
 			<p
@@ -127,7 +129,7 @@
 
 	<button
 		type="button"
-		class="text-text-muted hover:text-text px-1 shrink-0"
+		class="shrink-0 px-1 text-text-muted hover:text-text"
 		onclick={(e) => {
 			e.stopPropagation();
 			activeModalTab = 'actions';
@@ -141,10 +143,14 @@
 <Modal open={isModalOpen} onclose={() => (isModalOpen = false)}>
 	{#if activeModalTab === 'actions'}
 		<div class="flex flex-col gap-2">
-			<Button variant="secondary" onclick={() => enterFolder(folder.id, folder.displayName)}>Open</Button>
+			<Button variant="secondary" onclick={() => enterFolder(folder.id, folder.displayName)}
+				>Open</Button
+			>
 			<Button variant="secondary" onclick={() => (activeModalTab = 'share')}>Share</Button>
 			<Button variant="secondary" onclick={() => (activeModalTab = 'info')}>Info</Button>
-			<Button variant="secondary" onclick={() => (isEditing = true, isModalOpen = false)}>Rename</Button>
+			<Button variant="secondary" onclick={() => ((isEditing = true), (isModalOpen = false))}
+				>Rename</Button
+			>
 			<Button variant="danger" onclick={() => (activeModalTab = 'delete')}>Delete</Button>
 		</div>
 	{:else if activeModalTab === 'share'}
@@ -162,20 +168,24 @@
 			<div class="flex gap-2">
 				<button
 					type="button"
-					class="flex-1 h-9 rounded-md text-sm border {sharePermission === 'View' ? 'border-accent text-accent' : 'border-border text-text-muted'}"
+					class="h-9 flex-1 rounded-md border text-sm {sharePermission === 'View'
+						? 'border-accent text-accent'
+						: 'border-border text-text-muted'}"
 					onclick={() => (sharePermission = 'View')}
 				>
 					View
 				</button>
 				<button
 					type="button"
-					class="flex-1 h-9 rounded-md text-sm border {sharePermission === 'Edit' ? 'border-accent text-accent' : 'border-border text-text-muted'}"
+					class="h-9 flex-1 rounded-md border text-sm {sharePermission === 'Edit'
+						? 'border-accent text-accent'
+						: 'border-border text-text-muted'}"
 					onclick={() => (sharePermission = 'Edit')}
 				>
 					Edit
 				</button>
 			</div>
-			<div class="flex gap-2 mt-1">
+			<div class="mt-1 flex gap-2">
 				<Button variant="secondary" onclick={() => (activeModalTab = 'actions')}>Back</Button>
 				<Button onclick={handleShare}>Confirm Share</Button>
 			</div>
@@ -183,13 +193,18 @@
 	{:else if activeModalTab === 'info'}
 		<div class="flex flex-col gap-2">
 			<h3 class="font-display text-lg text-text">Folder Details</h3>
-			<p class="text-sm text-text"><span class="text-text-muted">Name:</span> {folder.displayName}</p>
+			<p class="text-sm text-text">
+				<span class="text-text-muted">Name:</span>
+				{folder.displayName}
+			</p>
 			<Button variant="secondary" onclick={() => (activeModalTab = 'actions')}>Back</Button>
 		</div>
 	{:else if activeModalTab === 'delete'}
 		<div class="flex flex-col gap-3">
 			<h3 class="font-display text-lg text-text">Confirm Delete</h3>
-			<p class="text-sm text-text">Are you sure you want to delete <strong>{folder.displayName}</strong> and its contents?</p>
+			<p class="text-sm text-text">
+				Are you sure you want to delete <strong>{folder.displayName}</strong> and its contents?
+			</p>
 			<div class="flex gap-2">
 				<Button variant="secondary" onclick={() => (activeModalTab = 'actions')}>Cancel</Button>
 				<Button

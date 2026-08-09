@@ -9,10 +9,10 @@
 </script>
 
 <div class="p-6">
-	<h1 class="font-display text-2xl text-text mb-6">Shared With Me</h1>
+	<h1 class="mb-6 font-display text-2xl text-text">Shared With Me</h1>
 
 	{#if sharedContents.incomingItems.length === 0}
-		<p class="text-text-muted text-sm">Nothing has been shared with you yet.</p>
+		<p class="text-sm text-text-muted">Nothing has been shared with you yet.</p>
 	{:else}
 		<div class="flex flex-col gap-2">
 			{#each sharedContents.incomingItems as item (item.shareId)}

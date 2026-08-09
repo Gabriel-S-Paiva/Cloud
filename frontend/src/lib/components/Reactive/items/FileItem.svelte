@@ -73,15 +73,20 @@
 		e.dataTransfer?.setData('application/json', JSON.stringify({ type: 'file', id: file.id }));
 		if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
 	}}
-	class="group border border-border rounded-lg bg-surface-raised hover:border-accent/40 transition-colors select-none cursor-pointer {variant === 'list' ? 'flex items-center gap-3 px-3 py-2.5' : 'p-4 flex flex-col items-center gap-2 text-center'}"
+	class="group cursor-pointer rounded-lg border border-border bg-surface-raised transition-colors select-none hover:border-accent/40 {variant ===
+	'list'
+		? 'flex items-center gap-3 px-3 py-2.5'
+		: 'flex flex-col items-center gap-2 p-4 text-center'}"
 	ondblclick={() => openFile(false)}
 	oncontextmenu={handleContextMenu}
 	role="button"
 	tabindex="0"
 >
-	<FileText size={variant === 'grid' ? 32 : 18} class="text-accent-secondary shrink-0" />
+	<FileText size={variant === 'grid' ? 32 : 18} class="shrink-0 text-accent-secondary" />
 
-	<div class="{variant === 'grid' ? 'w-full' : 'flex-1 min-w-0 flex items-center justify-between gap-2'}">
+	<div
+		class={variant === 'grid' ? 'w-full' : 'flex min-w-0 flex-1 items-center justify-between gap-2'}
+	>
 		{#if isEditing}
 			<input
 				type="text"
@@ -90,7 +95,7 @@
 				onblur={handleRename}
 				onclick={(e) => e.stopPropagation()}
 				autofocus
-				class="w-full bg-transparent border-b border-accent outline-none text-sm text-text"
+				class="w-full border-b border-accent bg-transparent text-sm text-text outline-none"
 			/>
 		{:else}
 			<p
@@ -107,7 +112,7 @@
 		{#if variant === 'list'}
 			<button
 				type="button"
-				class="text-text-muted hover:text-text px-1 shrink-0"
+				class="shrink-0 px-1 text-text-muted hover:text-text"
 				onclick={(e) => {
 					e.stopPropagation();
 					openModal('actions');
@@ -125,7 +130,9 @@
 			<Button variant="secondary" onclick={() => openFile(true)}>Download</Button>
 			<Button variant="secondary" onclick={() => (activeModalTab = 'share')}>Share</Button>
 			<Button variant="secondary" onclick={() => (activeModalTab = 'info')}>Info</Button>
-			<Button variant="secondary" onclick={() => (isEditing = true, isModalOpen = false)}>Rename</Button>
+			<Button variant="secondary" onclick={() => ((isEditing = true), (isModalOpen = false))}
+				>Rename</Button
+			>
 			<Button variant="danger" onclick={() => (activeModalTab = 'delete')}>Delete</Button>
 		</div>
 	{:else if activeModalTab === 'share'}
@@ -143,20 +150,24 @@
 			<div class="flex gap-2">
 				<button
 					type="button"
-					class="flex-1 h-9 rounded-md text-sm border {sharePermission === 'View' ? 'border-accent text-accent' : 'border-border text-text-muted'}"
+					class="h-9 flex-1 rounded-md border text-sm {sharePermission === 'View'
+						? 'border-accent text-accent'
+						: 'border-border text-text-muted'}"
 					onclick={() => (sharePermission = 'View')}
 				>
 					View
 				</button>
 				<button
 					type="button"
-					class="flex-1 h-9 rounded-md text-sm border {sharePermission === 'Edit' ? 'border-accent text-accent' : 'border-border text-text-muted'}"
+					class="h-9 flex-1 rounded-md border text-sm {sharePermission === 'Edit'
+						? 'border-accent text-accent'
+						: 'border-border text-text-muted'}"
 					onclick={() => (sharePermission = 'Edit')}
 				>
 					Edit
 				</button>
 			</div>
-			<div class="flex gap-2 mt-1">
+			<div class="mt-1 flex gap-2">
 				<Button variant="secondary" onclick={() => (activeModalTab = 'actions')}>Back</Button>
 				<Button onclick={handleShare}>Confirm Share</Button>
 			</div>
@@ -165,14 +176,19 @@
 		<div class="flex flex-col gap-2">
 			<h3 class="font-display text-lg text-text">File Details</h3>
 			<p class="text-sm text-text"><span class="text-text-muted">Name:</span> {file.displayName}</p>
-			<p class="text-sm text-text"><span class="text-text-muted">Size:</span> {(file.size / 1024 / 1024).toFixed(2)} MB</p>
+			<p class="text-sm text-text">
+				<span class="text-text-muted">Size:</span>
+				{(file.size / 1024 / 1024).toFixed(2)} MB
+			</p>
 			<p class="text-sm text-text"><span class="text-text-muted">Type:</span> {file.contentType}</p>
 			<Button variant="secondary" onclick={() => (activeModalTab = 'actions')}>Back</Button>
 		</div>
 	{:else if activeModalTab === 'delete'}
 		<div class="flex flex-col gap-3">
 			<h3 class="font-display text-lg text-text">Confirm Delete</h3>
-			<p class="text-sm text-text">Are you sure you want to delete <strong>{file.displayName}</strong>?</p>
+			<p class="text-sm text-text">
+				Are you sure you want to delete <strong>{file.displayName}</strong>?
+			</p>
 			<div class="flex gap-2">
 				<Button variant="secondary" onclick={() => (activeModalTab = 'actions')}>Cancel</Button>
 				<Button

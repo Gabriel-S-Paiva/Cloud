@@ -21,16 +21,18 @@
 	};
 </script>
 
-<div class="p-6 max-w-lg">
+<div class="max-w-lg p-6">
 	{#if auth.user}
-		<div class="flex items-center gap-4 mb-8">
-			<div class="w-14 h-14 rounded-full bg-accent text-surface flex items-center justify-center font-display text-2xl shrink-0">
+		<div class="mb-8 flex items-center gap-4">
+			<div
+				class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-accent font-display text-2xl text-surface"
+			>
 				{auth.user.username[0].toUpperCase()}
 			</div>
 			<div>
 				<h1 class="font-display text-xl text-text">{auth.user.username}</h1>
 				<span
-					class="text-xs px-2 py-0.5 rounded-full border inline-block mt-1"
+					class="mt-1 inline-block rounded-full border px-2 py-0.5 text-xs"
 					style={auth.user.role === 'Admin'
 						? 'color: var(--accent-secondary); border-color: var(--accent-secondary);'
 						: 'color: var(--text-muted); border-color: var(--border);'}
@@ -40,17 +42,19 @@
 			</div>
 		</div>
 
-		<div class="border border-border rounded-lg bg-surface-raised p-4 mb-6">
-			<div class="flex items-baseline justify-between mb-2">
+		<div class="mb-6 rounded-lg border border-border bg-surface-raised p-4">
+			<div class="mb-2 flex items-baseline justify-between">
 				<span class="text-sm text-text">Storage</span>
 				<span class="text-xs text-text-muted">
 					{formatBytes(auth.user.quotaUsed)} of {formatBytes(auth.user.quota)}
 				</span>
 			</div>
-			<div class="h-1.5 bg-border rounded-full overflow-hidden">
+			<div class="h-1.5 overflow-hidden rounded-full bg-border">
 				<div
 					class="h-full transition-[width] duration-300"
-					style="width: {quotaPercent}%; background: {quotaPercent > 90 ? 'var(--danger)' : 'var(--accent)'};"
+					style="width: {quotaPercent}%; background: {quotaPercent > 90
+						? 'var(--danger)'
+						: 'var(--accent)'};"
 				></div>
 			</div>
 		</div>

@@ -1,32 +1,32 @@
-import type { PathSegment } from "$lib/types";
+import type { PathSegment } from '$lib/types';
 
 class NavigationClass {
-  path = $state<PathSegment[]>([]);
+	path = $state<PathSegment[]>([]);
 
-  get currentFolderId(): number | null {
-    if (this.path.length === 0) return null;
-    return this.path[this.path.length - 1].id;
-  }
+	get currentFolderId(): number | null {
+		if (this.path.length === 0) return null;
+		return this.path[this.path.length - 1].id;
+	}
 
-  get urlPath(): string {
-    return this.path.map((segment) => segment.displayName).join('/');
-  }
+	get urlPath(): string {
+		return this.path.map((segment) => segment.displayName).join('/');
+	}
 
-  enter(segment: PathSegment) {
-    this.path.push(segment);
-  }
+	enter(segment: PathSegment) {
+		this.path.push(segment);
+	}
 
-  goToDepth(index: number) {
-    this.path = this.path.slice(0, index + 1);
-  }
+	goToDepth(index: number) {
+		this.path = this.path.slice(0, index + 1);
+	}
 
-  reset() {
-    this.path = [];
-  }
+	reset() {
+		this.path = [];
+	}
 
-  setPath(segments: PathSegment[]) {
-    this.path = segments;
-  }
+	setPath(segments: PathSegment[]) {
+		this.path = segments;
+	}
 }
 
 export const navigation = new NavigationClass();
