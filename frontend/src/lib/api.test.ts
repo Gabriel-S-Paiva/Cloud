@@ -16,14 +16,14 @@ vi.mock('$app/paths', () => ({
 const { endpoints } = await import('./api');
 
 function mockFetchOnce(response: { ok?: boolean; status?: number; body?: string }) {
-    // Create Fake Response
+	// Create Fake Response
 	const fetchMock = vi.fn().mockResolvedValue({
 		ok: response.ok ?? true,
 		status: response.status ?? 200,
 		text: async () => response.body ?? '',
 		blob: async () => new Blob([response.body ?? ''])
 	});
-    // Replaces Global fetch function
+	// Replaces Global fetch function
 	vi.stubGlobal('fetch', fetchMock);
 	return fetchMock;
 }
@@ -75,9 +75,7 @@ describe('request()', () => {
 			body: JSON.stringify({ error: 'Username already taken' })
 		});
 
-		await expect(endpoints.register('gabi', 'hunter2')).rejects.toThrow(
-			'Username already taken'
-		);
+		await expect(endpoints.register('gabi', 'hunter2')).rejects.toThrow('Username already taken');
 	});
 
 	it('falls back to a generic message when the error body is not JSON', async () => {
@@ -128,81 +126,81 @@ describe('getFileContent()', () => {
 	});
 });
 
-describe('uploadChunk()', () =>{
-    it('replaces Content-Type:application/json by Content-Type:application/octet-stream', async () =>{
-        const fetchMock = mockFetchOnce({ok:true, body: JSON.stringify({"bytesWritten":30})})
-        const fakeBlob = new Blob(['x'.repeat(100)], { type: 'application/octet-stream' });
+describe('uploadChunk()', () => {
+	it('replaces Content-Type:application/json by Content-Type:application/octet-stream', async () => {
+		const fetchMock = mockFetchOnce({ ok: true, body: JSON.stringify({ bytesWritten: 30 }) });
+		const fakeBlob = new Blob(['x'.repeat(100)], { type: 'application/octet-stream' });
 
-        await endpoints.uploadChunk(1, fakeBlob)
+		await endpoints.uploadChunk(1, fakeBlob);
 
-        expect(fetchMock).toHaveBeenCalledWith(
-            'http://test-api/files/1/chunk',
-            expect.objectContaining({
-                headers: expect.objectContaining({ 'Content-Type': 'application/octet-stream' })
-            })
-        );
-    })
-})
+		expect(fetchMock).toHaveBeenCalledWith(
+			'http://test-api/files/1/chunk',
+			expect.objectContaining({
+				headers: expect.objectContaining({ 'Content-Type': 'application/octet-stream' })
+			})
+		);
+	});
+});
 
 describe('partial endpoints', () => {
-    it('createFolder sends null for an omitted parentFolder', async () => { 
-        const fetchMock = mockFetchOnce({ok: true})
+	it('createFolder sends null for an omitted parentFolder', async () => {
+		const fetchMock = mockFetchOnce({ ok: true });
 
-        await endpoints.createFolder('Test Folder')
+		await endpoints.createFolder('Test Folder');
 
-        expect(fetchMock).toHaveBeenCalledWith(
-            'http://test-api/folders',
-            expect.objectContaining({
-                body: JSON.stringify({ displayName: 'Test Folder', parentFolder: null })
-            })
-        );
-    });
-    it('updateFolder sends null for an omitted parentFolder', async () => { 
-        const fetchMock = mockFetchOnce({ok: true})
+		expect(fetchMock).toHaveBeenCalledWith(
+			'http://test-api/folders',
+			expect.objectContaining({
+				body: JSON.stringify({ displayName: 'Test Folder', parentFolder: null })
+			})
+		);
+	});
+	it('updateFolder sends null for an omitted parentFolder', async () => {
+		const fetchMock = mockFetchOnce({ ok: true });
 
-        await endpoints.updateFolder(1,'Test Folder')
+		await endpoints.updateFolder(1, 'Test Folder');
 
-        expect(fetchMock).toHaveBeenCalledWith(
-            'http://test-api/folders/1',
-            expect.objectContaining({
-                body: JSON.stringify({ displayName: 'Test Folder', parentFolder: null })
-            })
-        );
-    });
-    it('updateFolder sends null for an omitted both display name and parentFolder', async () => { 
-        const fetchMock = mockFetchOnce({ok: true})
+		expect(fetchMock).toHaveBeenCalledWith(
+			'http://test-api/folders/1',
+			expect.objectContaining({
+				body: JSON.stringify({ displayName: 'Test Folder', parentFolder: null })
+			})
+		);
+	});
+	it('updateFolder sends null for an omitted both display name and parentFolder', async () => {
+		const fetchMock = mockFetchOnce({ ok: true });
 
-        await endpoints.updateFolder(1)
+		await endpoints.updateFolder(1);
 
-        expect(fetchMock).toHaveBeenCalledWith(
-            'http://test-api/folders/1',
-            expect.objectContaining({
-                body: JSON.stringify({ displayName: null, parentFolder: null })
-            })
-        );
-    });
-    it('updateFile sends null for an omitted parentFolder', async () => { 
-        const fetchMock = mockFetchOnce({ok: true})
+		expect(fetchMock).toHaveBeenCalledWith(
+			'http://test-api/folders/1',
+			expect.objectContaining({
+				body: JSON.stringify({ displayName: null, parentFolder: null })
+			})
+		);
+	});
+	it('updateFile sends null for an omitted parentFolder', async () => {
+		const fetchMock = mockFetchOnce({ ok: true });
 
-        await endpoints.updateFile(1,'Test File')
+		await endpoints.updateFile(1, 'Test File');
 
-        expect(fetchMock).toHaveBeenCalledWith(
-            'http://test-api/files/1',
-            expect.objectContaining({
-                body: JSON.stringify({ displayName: 'Test File', parentFolder: null })
-            })
-        );
-    });
-    it('updateFile sends null for an omitted both display name and parentFolder', async () => { 
-        const fetchMock = mockFetchOnce({ok: true})
+		expect(fetchMock).toHaveBeenCalledWith(
+			'http://test-api/files/1',
+			expect.objectContaining({
+				body: JSON.stringify({ displayName: 'Test File', parentFolder: null })
+			})
+		);
+	});
+	it('updateFile sends null for an omitted both display name and parentFolder', async () => {
+		const fetchMock = mockFetchOnce({ ok: true });
 
-        await endpoints.updateFile(1)
+		await endpoints.updateFile(1);
 
-        expect(fetchMock).toHaveBeenCalledWith(
-            'http://test-api/files/1',
-            expect.objectContaining({
-                body: JSON.stringify({ displayName: null, parentFolder: null })
-            })
-        );
-    });
+		expect(fetchMock).toHaveBeenCalledWith(
+			'http://test-api/files/1',
+			expect.objectContaining({
+				body: JSON.stringify({ displayName: null, parentFolder: null })
+			})
+		);
+	});
 });
