@@ -245,3 +245,169 @@ describe('deleteFile', () => {
 		expect(toast.error).toHaveBeenCalled();
 	});
 });
+
+describe('rename file', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		driveContents.setContents([], []);
+	});
+
+	it('returns if file id isnt found', async () => {
+		const fileList: CloudFile[] = [
+			{
+				id: 1,
+				displayName: 'Test Files',
+				ownedBy: 1,
+				size: 15,
+				bytesReceived: 15,
+				status: 'Complete',
+				contentType: 'type',
+				uploadedAt: 1,
+				lastModified: 1,
+				parentFolder: null
+			},
+			{
+				id: 2,
+				displayName: 'Test Files',
+				ownedBy: 1,
+				size: 15,
+				bytesReceived: 15,
+				status: 'Complete',
+				contentType: 'type',
+				uploadedAt: 1,
+				lastModified: 1,
+				parentFolder: null
+			}
+		];
+		driveContents.setContents([], fileList);
+
+		driveContents.renameFile(3, 'New Name');
+
+		expect(endpoints.updateFile).toHaveBeenCalledTimes(0);
+		expect(driveContents.files).toEqual(fileList);
+	});
+
+	it('Sucess Rename and Toast', async () => {
+		const file: CloudFile = {
+			id: 1,
+			displayName: 'Test Files',
+			ownedBy: 1,
+			size: 15,
+			bytesReceived: 15,
+			status: 'Complete',
+			contentType: 'type',
+			uploadedAt: 1,
+			lastModified: 1,
+			parentFolder: null
+		};
+
+		driveContents.setContents([], [file]);
+		vi.mocked(endpoints.updateFile).mockResolvedValue(undefined);
+
+		await driveContents.renameFile(1, 'New Name');
+
+		expect(endpoints.updateFile).toHaveBeenCalledTimes(1);
+		expect(driveContents.files[0]).toEqual(
+			expect.objectContaining({
+				id: 1,
+				displayName: 'New Name'
+			})
+		);
+		expect(toast.success).toHaveBeenCalled();
+	});
+
+	it('Failure Roolsback name and Toast', async () => {
+		const file: CloudFile = {
+			id: 1,
+			displayName: 'Test Files',
+			ownedBy: 1,
+			size: 15,
+			bytesReceived: 15,
+			status: 'Complete',
+			contentType: 'type',
+			uploadedAt: 1,
+			lastModified: 1,
+			parentFolder: null
+		};
+
+		driveContents.setContents([], [file]);
+		vi.mocked(endpoints.updateFile).mockRejectedValue(new Error('Error renaming File'));
+
+		await driveContents.renameFile(1, 'New Name');
+
+		expect(endpoints.updateFile).toHaveBeenCalledTimes(1);
+		expect(driveContents.files[0]).toEqual(expect.objectContaining(file));
+		expect(toast.error).toHaveBeenCalledTimes(1);
+	});
+});
+
+describe('rename folder', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		driveContents.setContents([], []);
+	});
+
+	it('returns if folder id isnt found', async () => {
+		const folderList: Folder[] = [
+			{
+				id: 1,
+				displayName: 'Test Folder',
+				ownedBy: 1,
+				parentFolder: null
+			},
+			{
+				id: 2,
+				displayName: 'Test Folder',
+				ownedBy: 1,
+				parentFolder: null
+			}
+		];
+		driveContents.setContents(folderList, []);
+
+		driveContents.renameFolder(3, 'New Name');
+
+		expect(endpoints.updateFolder).toHaveBeenCalledTimes(0);
+		expect(driveContents.folders).toEqual(folderList);
+	});
+
+	it('Sucess Rename and Toast', async () => {
+		const folder: Folder = {
+			id: 1,
+			displayName: 'Test Files',
+			ownedBy: 1,
+			parentFolder: null
+		};
+
+		driveContents.setContents([folder], []);
+		vi.mocked(endpoints.updateFolder).mockResolvedValue(undefined);
+
+		await driveContents.renameFolder(1, 'New Name');
+
+		expect(endpoints.updateFolder).toHaveBeenCalledTimes(1);
+		expect(driveContents.folders[0]).toEqual(
+			expect.objectContaining({
+				id: 1,
+				displayName: 'New Name'
+			})
+		);
+		expect(toast.success).toHaveBeenCalled();
+	});
+
+	it('Failure Roolback name and Toast', async () => {
+		const folder: Folder = {
+			id: 1,
+			displayName: 'Test Folder',
+			ownedBy: 1,
+			parentFolder: null
+		};
+
+		driveContents.setContents([folder], []);
+		vi.mocked(endpoints.updateFolder).mockRejectedValue(new Error('Error renaming Folder'));
+
+		await driveContents.renameFolder(1, 'New Name');
+
+		expect(endpoints.updateFolder).toHaveBeenCalledTimes(1);
+		expect(driveContents.folders[0]).toEqual(expect.objectContaining(folder));
+		expect(toast.error).toHaveBeenCalledTimes(1);
+	});
+});
