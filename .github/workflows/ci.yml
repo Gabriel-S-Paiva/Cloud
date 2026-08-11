@@ -63,9 +63,8 @@ jobs:
       - name: Build
         run: pnpm run build
 
-    # Action for when I finish vitest
-    # - name: Test
-    #   run: pnpm run test
+      - name: Test
+        run: pnpm run test
 
   deploy:
     name: Deploy to LAN Server
