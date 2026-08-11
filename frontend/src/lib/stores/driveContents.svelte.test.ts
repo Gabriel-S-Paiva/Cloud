@@ -191,7 +191,7 @@ describe('deleteFile', () => {
 	});
 });
 
-describe('deleteFile', () => {
+describe('deleteFolder', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		driveContents.setContents([], []);
@@ -239,7 +239,7 @@ describe('deleteFile', () => {
 		driveContents.setContents(folderList, null);
 
 		vi.mocked(endpoints.deleteFolder).mockRejectedValue(new Error('Error Deleting Folder'));
-		await driveContents.deleteFile(1);
+		await driveContents.deleteFolder(1);
 
 		expect(driveContents.folders).toEqual(folderList);
 		expect(toast.error).toHaveBeenCalled();
@@ -281,7 +281,7 @@ describe('rename file', () => {
 		];
 		driveContents.setContents([], fileList);
 
-		driveContents.renameFile(3, 'New Name');
+		await driveContents.renameFile(3, 'New Name');
 
 		expect(endpoints.updateFile).toHaveBeenCalledTimes(0);
 		expect(driveContents.files).toEqual(fileList);
@@ -307,12 +307,7 @@ describe('rename file', () => {
 		await driveContents.renameFile(1, 'New Name');
 
 		expect(endpoints.updateFile).toHaveBeenCalledTimes(1);
-		expect(driveContents.files[0]).toEqual(
-			expect.objectContaining({
-				id: 1,
-				displayName: 'New Name'
-			})
-		);
+		expect(driveContents.files[0]).toEqual(file);
 		expect(toast.success).toHaveBeenCalled();
 	});
 
@@ -409,5 +404,143 @@ describe('rename folder', () => {
 		expect(endpoints.updateFolder).toHaveBeenCalledTimes(1);
 		expect(driveContents.folders[0]).toEqual(expect.objectContaining(folder));
 		expect(toast.error).toHaveBeenCalledTimes(1);
+	});
+});
+
+describe('ShareFiles', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		driveContents.setContents([], []);
+	});
+
+	it('Sucess calls correct endpoint', async () => {
+		vi.mocked(endpoints.createShare).mockResolvedValue({ id: 1 });
+
+		await driveContents.shareFile(1, 1, 'Edit');
+
+		expect(endpoints.createShare).toHaveBeenCalledWith(1, null, 1, 'Edit');
+		expect(toast.success).toHaveBeenCalled();
+	});
+
+	it('Failiure calls correct endpoint and error toast', async () => {
+		vi.mocked(endpoints.createShare).mockRejectedValue(new Error('Error Creating Share'));
+
+		await driveContents.shareFile(1, 1, 'Edit');
+
+		expect(endpoints.createShare).toHaveBeenCalledWith(1, null, 1, 'Edit');
+		expect(toast.error).toHaveBeenCalled();
+	});
+});
+
+describe('ShareFolder', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		driveContents.setContents([], []);
+	});
+
+	it('Sucess calls correct endpoint', async () => {
+		vi.mocked(endpoints.createShare).mockResolvedValue({ id: 1 });
+
+		await driveContents.shareFolder(1, 1, 'Edit');
+
+		expect(endpoints.createShare).toHaveBeenCalledWith(null, 1, 1, 'Edit');
+		expect(toast.success).toHaveBeenCalled();
+	});
+
+	it('Failiure calls correct endpoint and error toast', async () => {
+		vi.mocked(endpoints.createShare).mockRejectedValue(new Error('Error Creating Share'));
+
+		await driveContents.shareFolder(1, 1, 'Edit');
+
+		expect(endpoints.createShare).toHaveBeenCalledWith(null, 1, 1, 'Edit');
+		expect(toast.error).toHaveBeenCalled();
+	});
+});
+
+describe('MoveFile', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		driveContents.setContents([], []);
+	});
+	it('Remove File and call Sucess on sucess', async () => {
+		const file: CloudFile = {
+			id: 1,
+			displayName: 'Test Files',
+			ownedBy: 1,
+			size: 15,
+			bytesReceived: 15,
+			status: 'Complete',
+			contentType: 'type',
+			uploadedAt: 1,
+			lastModified: 1,
+			parentFolder: null
+		};
+		driveContents.setContents(null, [file]);
+		vi.mocked(endpoints.updateFile).mockResolvedValue(undefined);
+
+		await driveContents.moveFile(1, 1);
+
+		expect(driveContents.files).toEqual([]);
+		expect(toast.success).toHaveBeenCalled();
+	});
+
+	it('Keep File and call Error on Failiure', async () => {
+		const file: CloudFile = {
+			id: 1,
+			displayName: 'Test Files',
+			ownedBy: 1,
+			size: 15,
+			bytesReceived: 15,
+			status: 'Complete',
+			contentType: 'type',
+			uploadedAt: 1,
+			lastModified: 1,
+			parentFolder: null
+		};
+		driveContents.setContents(null, [file]);
+		vi.mocked(endpoints.updateFile).mockRejectedValue(new Error('Error moving file'));
+
+		await driveContents.moveFile(1, 1);
+
+		expect(driveContents.files).toEqual([file]);
+		expect(toast.error).toHaveBeenCalled();
+	});
+});
+
+describe('MoveFolder', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		driveContents.setContents([], []);
+	});
+	it('Remove Folder and call Sucess on sucess', async () => {
+		const folder: Folder = {
+			id: 1,
+			displayName: 'Test Files',
+			ownedBy: 1,
+			parentFolder: null
+		};
+		driveContents.setContents([folder], null);
+		vi.mocked(endpoints.updateFolder).mockResolvedValue(undefined);
+
+		await driveContents.moveFolder(1, 1);
+
+		expect(driveContents.folders).toEqual([]);
+		expect(toast.success).toHaveBeenCalled();
+	});
+
+	it('Keep Folder and call Error on Failiure', async () => {
+		const folder: Folder = {
+			id: 1,
+			displayName: 'Test Files',
+			ownedBy: 1,
+			parentFolder: null
+		};
+		driveContents.setContents([folder], null);
+		vi.mocked(endpoints.updateFolder).mockRejectedValue(new Error('Error moving file'));
+
+		await driveContents.moveFolder(1, 1);
+
+		expect(driveContents.folders).toEqual([folder]);
+		expect(toast.error).toHaveBeenCalled();
 	});
 });
