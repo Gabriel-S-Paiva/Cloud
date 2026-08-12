@@ -1,18 +1,30 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 import { navigation } from './navigation.svelte';
+import { mockPathSegment } from '$lib/mocks/testData';
 import type { PathSegment } from '$lib/types';
 
-describe('inital storage state', () => {
-	it('path starts as an empty array', async () => {
+const nestedPath: PathSegment[] = [
+	{ id: 1, displayName: 'Level1' },
+	{ id: 2, displayName: 'Level2' },
+	{ id: 3, displayName: 'Level3' },
+	{ id: 4, displayName: 'Level4' }
+];
+
+describe('initial store state', () => {
+	beforeEach(() => {
+		navigation.reset();
+	});
+
+	it('path starts as an empty array', () => {
 		expect(navigation.path).toEqual([]);
 	});
 
-	it('current Folder Should return null', async () => {
+	it('currentFolderId is null', () => {
 		expect(navigation.currentFolderId).toBeNull();
 	});
 
-	it('url path should return ""', async () => {
+	it('urlPath is an empty string', () => {
 		expect(navigation.urlPath).toBe('');
 	});
 });
@@ -21,20 +33,16 @@ describe('navigation flow', () => {
 	beforeEach(() => {
 		navigation.reset();
 	});
-	it('pushing a single Segment', async () => {
-		navigation.enter({ id: 1, displayName: 'Level1' });
+
+	it('pushing a single segment', () => {
+		navigation.enter(mockPathSegment({ id: 1, displayName: 'Level1' }));
 
 		expect(navigation.path.length).toBe(1);
 		expect(navigation.currentFolderId).toBe(1);
 		expect(navigation.urlPath).toBe('Level1');
 	});
-	it('nested navigation', async () => {
-		const nestedPath: PathSegment[] = [
-			{ id: 1, displayName: 'Level1' },
-			{ id: 2, displayName: 'Level2' },
-			{ id: 3, displayName: 'Level3' },
-			{ id: 4, displayName: 'Level4' }
-		];
+
+	it('nested navigation', () => {
 		navigation.setPath(nestedPath);
 
 		expect(navigation.path.length).toBe(nestedPath.length);
@@ -46,16 +54,10 @@ describe('navigation flow', () => {
 describe('navigation using breadcrumbs', () => {
 	beforeEach(() => {
 		navigation.reset();
-	});
-	it('Triming Path', async () => {
-		const nestedPath: PathSegment[] = [
-			{ id: 1, displayName: 'Level1' },
-			{ id: 2, displayName: 'Level2' },
-			{ id: 3, displayName: 'Level3' },
-			{ id: 4, displayName: 'Level4' }
-		];
 		navigation.setPath(nestedPath);
+	});
 
+	it('trims the path to the selected depth', () => {
 		navigation.goToDepth(1);
 
 		expect(navigation.path.length).toBe(2);
@@ -63,15 +65,7 @@ describe('navigation using breadcrumbs', () => {
 		expect(navigation.urlPath).toBe('Level1/Level2');
 	});
 
-	it('Seleting root', async () => {
-		const nestedPath: PathSegment[] = [
-			{ id: 1, displayName: 'Level1' },
-			{ id: 2, displayName: 'Level2' },
-			{ id: 3, displayName: 'Level3' },
-			{ id: 4, displayName: 'Level4' }
-		];
-		navigation.setPath(nestedPath);
-
+	it('selecting root (depth 0) keeps only the first segment', () => {
 		navigation.goToDepth(0);
 
 		expect(navigation.path.length).toBe(1);
@@ -79,63 +73,40 @@ describe('navigation using breadcrumbs', () => {
 		expect(navigation.urlPath).toBe('Level1');
 	});
 
-	it('Selecting current depth', async () => {
-		const nestedPath: PathSegment[] = [
-			{ id: 1, displayName: 'Level1' },
-			{ id: 2, displayName: 'Level2' },
-			{ id: 3, displayName: 'Level3' },
-			{ id: 4, displayName: 'Level4' }
-		];
-		navigation.setPath(nestedPath);
-
+	it('selecting the current depth keeps the full path', () => {
 		navigation.goToDepth(nestedPath.length - 1);
 
 		expect(navigation.path.length).toBe(nestedPath.length);
-		expect(navigation.currentFolderId).toBe(nestedPath.at(nestedPath.length - 1)!.id);
+		expect(navigation.currentFolderId).toBe(nestedPath.at(-1)!.id);
 		expect(navigation.urlPath).toBe('Level1/Level2/Level3/Level4');
 	});
 
-	it('Out of index', async () => {
-		const nestedPath: PathSegment[] = [
-			{ id: 1, displayName: 'Level1' },
-			{ id: 2, displayName: 'Level2' },
-			{ id: 3, displayName: 'Level3' },
-			{ id: 4, displayName: 'Level4' }
-		];
-		navigation.setPath(nestedPath);
-
+	it('an out-of-range depth clears the path entirely', () => {
 		navigation.goToDepth(-1);
 
-		expect(navigation.path.length).toBe(0);
 		expect(navigation.path).toEqual([]);
-		expect(navigation.currentFolderId).toBe(null);
+		expect(navigation.currentFolderId).toBeNull();
 		expect(navigation.urlPath).toBe('');
 	});
 });
 
-describe('Direct Operations', () => {
+describe('direct operations', () => {
 	beforeEach(() => {
 		navigation.reset();
 	});
-	it('reset clears path', async () => {
-		const nestedPath: PathSegment[] = [
-			{ id: 1, displayName: 'Level1' },
-			{ id: 2, displayName: 'Level2' },
-			{ id: 3, displayName: 'Level3' },
-			{ id: 4, displayName: 'Level4' }
-		];
+
+	it('reset clears the path', () => {
 		navigation.setPath(nestedPath);
 
 		navigation.reset();
 
-		expect(navigation.path.length).toBe(0);
 		expect(navigation.path).toEqual([]);
-		expect(navigation.currentFolderId).toBe(null);
+		expect(navigation.currentFolderId).toBeNull();
 		expect(navigation.urlPath).toBe('');
 	});
 
-	it('setpath overwrites path', async () => {
-		const nestedPath: PathSegment[] = [
+	it('setPath overwrites the existing path rather than merging', () => {
+		const initialPath: PathSegment[] = [
 			{ id: 1, displayName: 'Level1' },
 			{ id: 2, displayName: 'Level2' }
 		];
@@ -143,7 +114,7 @@ describe('Direct Operations', () => {
 			{ id: 3, displayName: 'Level3' },
 			{ id: 4, displayName: 'Level4' }
 		];
-		navigation.setPath(nestedPath);
+		navigation.setPath(initialPath);
 
 		navigation.setPath(newPath);
 

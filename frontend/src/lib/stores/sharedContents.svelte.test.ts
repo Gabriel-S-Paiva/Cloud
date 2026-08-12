@@ -73,9 +73,6 @@ describe('loadIncoming', () => {
 
 	it('converts a null folders field in the response to an empty array', async () => {
 		const file = mockSharedFile();
-		// Backend can send a nil slice as JSON null (same pattern as the Go
-		// nil-slice marshaling issue elsewhere in this project), even though
-		// the TS type says it's never null — cast to simulate that.
 		vi.mocked(endpoints.getShareIncoming).mockResolvedValue({
 			folders: null,
 			files: [file]
