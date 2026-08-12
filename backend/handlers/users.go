@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -48,7 +49,9 @@ func (h *UserHandlers) Register(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]int{"id": id})
+	if err := json.NewEncoder(w).Encode(map[string]int{"id": id}); err != nil {
+		log.Printf("failed to encode response: %v", err)
+	}
 }
 
 func (h *UserHandlers) GetMe(w http.ResponseWriter, r *http.Request) {
@@ -94,7 +97,9 @@ func (h *UserHandlers) AproveRequest(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]int{"id": userId})
+	if err := json.NewEncoder(w).Encode(map[string]int{"id": userId}); err != nil {
+		log.Printf("failed to encode response: %v", err)
+	}
 }
 
 func (h *UserHandlers) RejectRequest(w http.ResponseWriter, r *http.Request) {
