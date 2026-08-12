@@ -60,12 +60,11 @@ jobs:
       - name: Type check
         run: pnpm run check
 
+      - name: Test
+        run: pnpm run test
+
       - name: Build
         run: pnpm run build
-
-    # Action for when I finish vitest
-    # - name: Test
-    #   run: pnpm run test
 
   deploy:
     name: Deploy to LAN Server
