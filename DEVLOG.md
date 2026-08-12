@@ -306,3 +306,251 @@ Normally, I'd draft a happy path, build Figma designs, and then write code. But 
 - [ ] **Data Fetching:** Wire up backend API calls to Svelte state/stores.
 - [ ] **Rendering:** Display raw directory contents and metadata lists.
 - [ ] **Navigation:** Build forward/back/up directory traversal logic.
+
+## Day 13 - Navigation, Breadcrumbs & API Refactoring
+
+**Focus:** Building frontend directory navigation, adding basic folder CRUD, and fixing API response payloads on the fly.
+
+### Progress & Wins
+* **Navigation & Breadcrumbs:** Built out directory traversal logic with dynamic breadcrumb paths so users can navigate up and down folder trees.
+* **Admin Features:** Admin user approval/rejection workflows are officially functional in the UI.
+* **Milestone Progress:** The Home/Drive view is operational! Only `/profile` and `/shares` remain before moving out of the raw HTML phase and into code architecture/refactoring.
+
+---
+
+### Pain Point & Immediate Refactor: Optimistic UI Updates
+Caught a major inefficiency in the backend API design while wiring up folder creation in Svelte:
+
+* **The Problem:** The `POST` endpoint to create a folder originally just returned a generic `200 OK`. This forced the frontend to make a second, wasteful API request (`GET /folders`) just to fetch the newly created folder's details and render it in the UI.
+* **The Fix:** Refactored creation endpoints immediately to return the newly generated resource `id` in the JSON response payload.
+* **The Result:** The frontend can now immediately construct/derive the new folder object locally and append it to the active UI state without waiting on a second network request.
+
+---
+
+### Backlog Note: Drag-and-Drop
+* **Feature Deferred:** Decided to hold off on implementing drag-and-drop file/folder moving until **Phase 2 (Architecture)** or **Phase 3 (UI/Tailwind)**. Trying to handle native drag-and-drop HTML events on unstyled elements creates messy boilerplate that will just need to be rewritten once component structures solidify.
+
+---
+
+### Targets for Next Time
+- [ ] Build out the `/shares` page (shared files/folders view).
+- [ ] Build out the `/profile` page (user settings & quota indicators).
+- [ ] Prepare code base for Phase 2: Architecture & Component Cleanup.
+
+## Day 14 — The Backend Returns: Ownership Checks & Type Refactoring
+
+**Focus:** Fixing backend file ownership verification and syncing API types across the stack.
+
+### Progress & Technical Debt Cleanup
+* **Ownership Validator Fix:** Returned to the Go backend to patch issues with ownership checks on shared files. The original middleware was too strict and blocked valid shared access patterns.
+* **API Payload Refactor:** Realized mid-implementation that several sharing endpoints were returning incorrect response structures. Refactored the Go handler signatures and updated response objects.
+* **Frontend Sync (`api.ts`):** Synchronized the Svelte TypeScript interfaces/types in `api.ts` to match the updated Go backend responses.
+
+---
+
+## Day 15 - Sharing Workflows Complete & The Component Pivot
+
+**Focus:** Wrapping up share permissions, identifying a key user-discovery gap, and preparing for Svelte component architecture.
+
+### Progress & Wins
+* **Share CRUD Operational:** Finished implementing both the **Create Share** and **Update Share** (permissions modification) features across the API and frontend!
+
+---
+
+### Pain Point / Missing Link: User Discovery
+While testing the sharing flow, hit an obvious missing UX requirement:
+* **The Problem:** You can create a share for "someone," but there is currently no backend endpoint or UI component to search/list users on the system to share *with*. 
+* **Backlog Item:** Need to add a lightweight user search endpoint.
+
+---
+
+### API Cleanup & Next Steps
+* **Pruning Dead Endpoints:** Considering dropping `getFolder` and `getFile` single-item endpoints if full directory tree payloads satisfy all current UI needs.
+* **Missing Minor Features:** Need to wire up a proper Logout action in the sidebar.
+
+**Milestone Achieved:** With the backend stable and all core CRUD features functional, Phase 1 (Pure Code) is essentially wrapped! Time to move into **Phase 2 (Component Architecture)** and **Phase 3 (Tailwind Styling)**. 
+
+## Day 16 - Tailwind Styling, Toast Notifications & Roadmap to v1
+
+**Time Spent:** 1 hour
+
+**Focus:** Kicking off Phase 3 (Styling & Componentization), building the login page UI, and mapping out releases v1 through v3.
+
+### Progress & Wins
+* **Login UI Complete:** Coated the raw login view with clean Tailwind CSS styling.
+* **Toast Notification System:** Integrated toast alerts on the frontend to provide real-time feedback for authentication success/failure states.
+
+---
+
+### Immediate Todo List
+1. Add color variants to toast alerts (success green, error red, warning yellow).
+2. Build styled Svelte components for file and folder items.
+3. Implement the styled sidebar navigation layout.
+4. Fix the `/home` root folder navigation routing bug.
+
+---
+
+### Project Roadmap & Strategy
+* **v1 (Release Target):** Implement Drag-and-Drop file uploads/moving, complete a full end-to-end bug sweep, and deploy to local hardware.
+* **v2 (Infrastructure):** Add automated backend/frontend test suites and set up a CI/CD deployment pipeline.
+* **v3 (Iterative Polish):** Introduce deferred secondary features to test and validate the automated CI/CD pipeline in a real-world workflow.
+
+## Day 17 - The Final Stretch Stretch
+
+**Focus:** Manual testing, edge-case bug hunting, and final UI/UX polish ahead of v1 deployment.
+
+### The "90/90 Rule" of Development
+Deployment feels incredibly close, but as every developer knows: *the first 90% of the code accounts for the first 90% of the development time. The remaining 10% of the code accounts for the other 90% of the development time.*
+
+Every time a late bug gets squashed, two small UX papercuts show up in manual testing. 
+
+---
+
+### Current Polish & Bug Sweep
+* **Manual Testing:** Clicking through every authentication, folder navigation, and file action edge-case to make sure no unhandled errors crash the UI.
+* **Late Bug Fixes:** Patching minor layout overflows, state sync glitches when switching directories, and toast notification timing.
+* **Final Touchups:** Double-checking mobile/small screen responsiveness and cleaning up console log noise.
+
+---
+
+### Targets Before Deployment 🚀
+- [ ] Fix the `/home` root folder navigation routing glitch.
+- [ ] Implement native drag-and-drop file upload/moving in the styled file view.
+- [ ] Build release Docker container and run initial local deployment test on target hardware.
+
+## Day 18 - Architectural Epiphany: Modular Feature Extensions
+
+**Focus:** Designing a low-power primary server with optional high-spec microservice extensions.
+
+### The Challenge: Always-On Server vs. Heavy Features
+I want 100% uptime, which means running the cloud drive on my always-on, low-spec old PC. However, old hardware can't handle modern heavy tasks (like local AI photo tagging, video transcoding, or smart search models).
+
+---
+
+### The Idea: Dynamic Capability-Based Modules
+Instead of compromising on features or forcing the old PC to suffer, the architecture can support **optional local extensions**:
+
+```text
++-------------------+
+|     Frontend      |
++-------------------+
+     |         |
+     |         +---------------------------+
+     v (Core Drive API)                    v (Optional AI API)
++-------------------+             +-------------------+
+|  Old PC (Core)    |             |  New PC (AI/Heavy)|
+|  * Always On      |             |  * Online Sometimes|
+|  * Storage & Auth |             |  * ML / Tagging   |
++-------------------+             +-------------------+
+```
+
+### How It Works in Practice
+* **The Core (Old PC):** Runs 24/7. Handles file management, directory navigation, upload/download, and user authentication.
+* **The Add-on (New PC):** Runs an AI or heavy-processing microservice whenever the desktop is turned on.
+* **Smart UI Integration:** The frontend checks if the New PC's service is reachable. If online, advanced features (like "Auto-tag Images with AI") appear. If offline, the core cloud drive functions 100% normally without any missing dependencies.
+
+*Zero code written today, but a super clean concept for adding heavy desktop-powered features to a low-spec home lab without breaking uptime.*
+---
+
+## Day 19 - The Bug War (Nearing Victory)
+
+**Focus:** Final bug hunting and edge-case squashing ahead of environment setup.
+
+### The Grind
+* **Bug Sweeping:** Spent the day fighting late-stage bugs in state sync and edge cases. Every time one gets resolved, another minor edge case pops up—but the list is shrinking rapidly.
+* **Pre-Deployment Prep:** Getting the codebase stabilized so the server environment setup can start smooth.
+
+---
+
+## Day 20 - Development Frozen & Machine Setup Begins
+
+**Focus:** Closing active feature development and transitioning to server deployment preparation.
+
+### Major Milestone
+* **Development Freeze:** Officially froze the codebase for v1! No new features—all focus shifts to getting the deployment target machine configured and prepped.
+* Exhausted after a full-day push, but the project has officially crossed the finish line from "dev code" to "deployable software."
+
+---
+
+## Day 21 - Dockerization & LAN Deployment
+
+**Focus:** Containerizing the stack and getting the cloud drive live on the home network.
+
+### Accomplishments
+* **Docker Setup:** Wrote and configured the `Dockerfile` and `docker-compose` setup to run the Go backend and built Svelte frontend together.
+* **LAN Live:** Successfully deployed the containers onto the home server! The cloud drive is now accessible across local devices via LAN IP.
+
+---
+
+## Day 22 - Live Environment Bug Patching
+
+**Focus:** Fixing real-world bugs discovered during actual network usage.
+
+### Post-Deploy Fixes
+* Deploying to real hardware on a real local network exposed a few environment-specific glitches (CORS headers, file pathing, and network upload stream quirks).
+* Applied hotfixes directly to the live container environment to stabilize v1.
+
+## Day 23 - Linting, Automated Testing & Self-Hosted CI/CD Pipeline 🚀
+
+**Focus:** Code cleanup, static analysis, and building an automated self-hosted deployment pipeline.
+
+### Progress & Polish
+* **Code Quality & Linting:** Cleaned up residual backend debt and ran full frontend linter/formatter passes using **ESLint** and **Prettier** to enforce consistent style across the codebase.
+* **Backend Unit Tests:** Added initial Go test suites to validate core logic during automated builds.
+
+---
+
+### Major Milestone: Self-Hosted CI/CD Pipeline
+Built and verified a complete automated integration and deployment workflow from scratch:
+
+1. **Self-Hosted Runner:** Set up a local runner instance inside the home network (LAN) so deployment triggers can target the home server directly without exposing internal ports to the public web.
+2. **CI (Continuous Integration):**
+   * Automatically runs `go test` on incoming backend commits.
+   * Runs ESLint + Prettier checks on the frontend code.
+3. **CD (Continuous Deployment):**
+   * Automatically builds and deploys the latest container release straight to the local hardware once checks pass.
+
+> **The Developer Experience:** Watching those first few GitHub Actions pipeline runs go through live is nerve-wracking—hoping every step turns green. But seeing the full pipeline succeed end-to-end makes it all worth it!
+
+## Day 24 - Vitest Integration & Branch Protection Rules
+
+**Time Spent:** 3 hours
+
+**Focus:** Introducing unit testing to the Svelte frontend and locking down repo workflow habits.
+
+### Progress & Wins
+* **Frontend Unit Testing with Vitest:** Integrated [Vitest](https://vitest.dev/) into the frontend setup to test core JavaScript/TypeScript modules and enforce code reliability before deployment.
+* **API Service Coverage:** Started writing test cases for `api.ts` to mock backend responses and verify network call handling, error states, and data mapping.
+
+---
+
+### Workflow & Repo Hardening
+* **Branch Protection Rules:** Configured rulesets on the main repository branch:
+  * **Protected `main`:** Direct pushes to `main` are now blocked.
+  * **Pull Request Workflow:** All changes must pass through feature branches and open PRs.
+  * **CI Gatekeeper:** Merges require green status checks from the automated CI pipeline (Go tests + ESLint + Vitest).
+
+> **Habit Building:** Enforcing branch protection forces good git discipline—even on solo projects—and ensures broken code never hits the self-hosted deployment runner automatically.
+
+## Day 25 — Git Hooks with Husky & Frontend Test Expansion
+
+**Focus:** Automating pre-commit code formatting to keep Git history clean, and expanding Svelte store/state test coverage.
+
+### Workflow Upgrade: Fixing CI Pain with Husky
+Repeatedly running into a frustrating workflow bottleneck on GitHub Actions:
+
+* **The Problem:** I'd commit a feature, push it, and watch the CI pipeline fail simply because I forgot to manually run formatting/linting scripts beforehand. Fixing it required pushing messy extra commits just to clean up formatting (`"fix linting"`).
+* **The Solution:** Installed and configured **Husky** to automate pre-commit Git hooks.
+* **How It Works:** Before any commit is created locally, Husky automatically executes `pnpm run format` (and lint checks). If the formatting or linting checks fail or break, Husky cancels/rolls back the commit before it ever hits remote tracking. 
+
+> **Result:** No more failed CI builds due to whitespace or code style mistakes, and a completely clean commit history!
+
+---
+
+### Frontend Testing Progress (Vitest)
+Significantly expanded test coverage across the application state layer:
+
+- [x] **`api.ts`** — Network call payloads, headers, and error handling fully covered.
+- [x] **`auth.svelte.ts`** — Session state, login/logout reactive state transitions verified.
+- [x] **`driveContents.svelte.ts`** — File/folder list mutations and local optimistic updates fully tested.
+- [ ] **`navigation.svelte.ts`** — Breadcrumb path parsing and directory traversal logic *(In Progress)*.
