@@ -7,7 +7,7 @@ COPY migration ./migration
 WORKDIR /src/backend
 RUN CGO_ENABLED=0 GOOS=linux go build -o /out/server .
 
-FROM alpine:3.20
+FROM alpine:3.24
 RUN adduser -D appuser
 WORKDIR /app/backend
 COPY --from=builder /out/server ./server
