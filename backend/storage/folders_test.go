@@ -215,7 +215,7 @@ func TestFolderAccess_NoAccessReturnsError(t *testing.T) {
 		t.Fatalf("CreateFolder: %v", err)
 	}
 
-	if _, _, err := s.FolderAccess(ctx, int(folderID), strangerID); err != ErrFileNotFound {
-		t.Errorf("expected ErrFileNotFound, got %v", err)
+	if _, _, err := s.FolderAccess(ctx, int(folderID), strangerID); err != ErrForbidden {
+		t.Errorf("expected ErrForbiden, got %v", err)
 	}
 }
