@@ -1,4 +1,4 @@
-name: CI/CD
+name: CI
 
 on:
   push:
@@ -38,15 +38,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.20.0
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
-          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - uses: pnpm/action-setup@v4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -54,33 +50,11 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
-      - name: Create .env
-        run: cp example.env .env
-
       - name: Type check
         run: pnpm run check
-
-      - name: Build
-        run: pnpm run build
 
       - name: Test
         run: pnpm run test
 
-  deploy:
-    name: Deploy to LAN Server
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [backend, frontend]
-    runs-on: self-hosted
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Deploy Application
-        run: |
-          cd ~/Cloud
-          git pull origin main
-          docker compose down
-          docker compose up -d --build
-          echo "Deployment complete!"
-        
+      - name: Build
+        run: pnpm run build
