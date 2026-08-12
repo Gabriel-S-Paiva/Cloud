@@ -59,7 +59,9 @@ func (s *Store) AproveRequest(ctx context.Context, id int) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	var user User
 	err = tx.QueryRowContext(ctx, "SELECT username, hashed_password FROM Requests WHERE id = ?", id).Scan(&user.Username, &user.Password)
@@ -190,7 +192,9 @@ func (s *Store) SeedAdmin(ctx context.Context, username, password string) error 
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {

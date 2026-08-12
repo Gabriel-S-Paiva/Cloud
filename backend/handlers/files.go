@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -52,7 +53,9 @@ func (h *FileHanlder) CreateFile(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]int64{"id": id})
+	if err := json.NewEncoder(w).Encode(map[string]int64{"id": id}); err != nil {
+		log.Printf("failed to encode response: %v", err)
+	}
 }
 
 func (h *FileHanlder) UploadChunk(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +90,9 @@ func (h *FileHanlder) UploadChunk(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]int64{"bytesWritten": written})
+	if err := json.NewEncoder(w).Encode(map[string]int64{"bytesWritten": written}); err != nil {
+		log.Printf("failed to encode response: %v", err)
+	}
 }
 
 func (h *FileHanlder) GetFile(w http.ResponseWriter, r *http.Request) {
@@ -148,7 +153,9 @@ func (h *FileHanlder) GetFileContent(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Disposition", "attachment; filename=\""+file.DisplayName+"\"")
 	}
 
-	io.Copy(w, content)
+	if _, err := io.Copy(w, content); err != nil {
+		log.Printf("failed to write file content to response: %v", err)
+	}
 }
 
 func (h *FileHanlder) UpdateFile(w http.ResponseWriter, r *http.Request) {

@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -69,7 +70,9 @@ func (h *ShareHandler) CreateShare(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]int{"id": id})
+	if err := json.NewEncoder(w).Encode(map[string]int{"id": id}); err != nil {
+		log.Printf("failed to encode response: %v", err)
+	}
 }
 
 // Shared With Me
