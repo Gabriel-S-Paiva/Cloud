@@ -30,7 +30,9 @@ func (s *Store) CreateFileUploadIntent(ctx context.Context, displayName string, 
 	if err != nil {
 		return 0, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 	var quota, quotaUsed int
 	err = tx.QueryRowContext(ctx, "SELECT quota, quota_used FROM Users WHERE id = ?", ownedBy).
 		Scan(&quota, &quotaUsed)

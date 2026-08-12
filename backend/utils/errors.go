@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -12,5 +13,7 @@ type ErrorResponse struct {
 func WriteJSONError(w http.ResponseWriter, message string, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(ErrorResponse{Error: message})
+	if err := json.NewEncoder(w).Encode(ErrorResponse{Error: message}); err != nil {
+		log.Printf("failed to encode response: %v", err)
+	}
 }

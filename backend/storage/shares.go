@@ -61,7 +61,9 @@ func (s *Store) GetIncomingShares(ctx context.Context, userId int) (*SharedConte
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	fileRows, err := tx.QueryContext(ctx, `SELECT f.id, f.display_name, f.owned_by, f.size, f.bytes_received, f.status, f.content_type, f.uploaded_at, f.last_modified, f.parent_folder, s.id, s.permissions, r.username, owner.username
 											FROM Files AS f

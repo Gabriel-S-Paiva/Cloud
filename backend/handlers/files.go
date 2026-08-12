@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -148,7 +149,9 @@ func (h *FileHanlder) GetFileContent(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Disposition", "attachment; filename=\""+file.DisplayName+"\"")
 	}
 
-	io.Copy(w, content)
+	if _, err := io.Copy(w, content); err != nil {
+		log.Printf("failed to write file content to response: %v", err)
+	}
 }
 
 func (h *FileHanlder) UpdateFile(w http.ResponseWriter, r *http.Request) {
