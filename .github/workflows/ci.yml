@@ -60,11 +60,11 @@ jobs:
       - name: Type check
         run: pnpm run check
 
-      - name: Build
-        run: pnpm run build
-
       - name: Test
         run: pnpm run test
+
+      - name: Build
+        run: pnpm run build
 
   deploy:
     name: Deploy to LAN Server
