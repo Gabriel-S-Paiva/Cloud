@@ -1,5 +1,5 @@
-import type { User } from '$lib/types';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockUser, mockAdminUser } from '$lib/mocks/testData';
 
 vi.mock('$lib/api', () => ({
 	endpoints: {
@@ -19,97 +19,57 @@ describe('login', () => {
 		auth.user = null;
 	});
 
-	it('Populates user', async () => {
-		const mockUser: User = {
-			id: 1,
-			username: 'user',
-			role: 'User',
-			quota: 2,
-			quotaUsed: 0,
-			rootFolderId: 15
-		};
-
+	it('populates user on success', async () => {
+		const user = mockUser();
 		vi.mocked(endpoints.login).mockResolvedValue(undefined);
-		vi.mocked(endpoints.getMe).mockResolvedValue(mockUser);
+		vi.mocked(endpoints.getMe).mockResolvedValue(user);
 
 		await auth.login('user', 'epicPassword');
 
-		expect(auth.user).toEqual(mockUser);
-
+		expect(auth.user).toEqual(user);
 		expect(endpoints.login).toHaveBeenCalledWith('user', 'epicPassword');
 		expect(endpoints.getMe).toHaveBeenCalledTimes(1);
 	});
 
-	it('Leaves user as null when failed', async () => {
+	it('leaves user as null when checkSession fails', async () => {
 		vi.mocked(endpoints.login).mockResolvedValue(undefined);
 		vi.mocked(endpoints.getMe).mockRejectedValue(new Error('Unauthorized'));
 
 		await auth.login('user', 'epicPassword');
 
 		expect(auth.user).toBeNull();
-
 		expect(endpoints.login).toHaveBeenCalledWith('user', 'epicPassword');
 		expect(endpoints.getMe).toHaveBeenCalledTimes(1);
 	});
 });
 
-describe('session', () => {
+describe('session getters', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		auth.user = null;
 	});
 
-	it('IsLoggedIn returns true when user is logged', async () => {
-		const mockUser: User = {
-			id: 1,
-			username: 'user',
-			role: 'User',
-			quota: 2,
-			quotaUsed: 0,
-			rootFolderId: 15
-		};
-
-		auth.user = mockUser;
-
-		expect(auth.isLoggedIn).toEqual(true);
+	it('isLoggedIn is true when a user is set', () => {
+		auth.user = mockUser();
+		expect(auth.isLoggedIn).toBe(true);
 	});
 
-	it('IsLoggedIn returns false when user is empty', async () => {
-		expect(auth.isLoggedIn).toEqual(false);
+	it('isLoggedIn is false when user is null', () => {
+		expect(auth.isLoggedIn).toBe(false);
 	});
 
-	it('IsAdmin return false when user is null', async () => {
-		expect(auth.isAdmin).toEqual(false);
+	it('isAdmin is false when user is null', () => {
+		expect(auth.isAdmin).toBe(false);
 	});
 
-	it('IsAdmin return false when user is User', async () => {
-		const mockUser: User = {
-			id: 1,
-			username: 'user',
-			role: 'User',
-			quota: 2,
-			quotaUsed: 0,
-			rootFolderId: 15
-		};
-
-		auth.user = mockUser;
-
-		expect(auth.isAdmin).toEqual(false);
+	it('isAdmin is false for a User role', () => {
+		auth.user = mockUser();
+		expect(auth.isAdmin).toBe(false);
 	});
 
-	it('IsAdmin return true when user is Admin', async () => {
-		const mockUser: User = {
-			id: 1,
-			username: 'user',
-			role: 'Admin',
-			quota: 2,
-			quotaUsed: 0,
-			rootFolderId: 15
-		};
-
-		auth.user = mockUser;
-
-		expect(auth.isAdmin).toEqual(true);
+	it('isAdmin is true for an Admin role', () => {
+		auth.user = mockAdminUser();
+		expect(auth.isAdmin).toBe(true);
 	});
 });
 
@@ -119,19 +79,21 @@ describe('logout', () => {
 		auth.user = null;
 	});
 
-	it('sets user to null regardless of api result', async () => {
-		auth.user = { id: 1, username: 'user', role: 'User', quota: 2, quotaUsed: 0, rootFolderId: 15 };
-
+	it('sets user to null on successful logout', async () => {
+		auth.user = mockUser();
 		vi.mocked(endpoints.logout).mockResolvedValueOnce(undefined);
+
 		await auth.logout();
+
 		expect(auth.user).toBeNull();
 	});
 
-	it('set user to null on error', async () => {
-		auth.user = { id: 1, username: 'user', role: 'User', quota: 2, quotaUsed: 0, rootFolderId: 15 };
-
+	it('sets user to null even when the API call fails', async () => {
+		auth.user = mockUser();
 		vi.mocked(endpoints.logout).mockRejectedValueOnce(new Error('Network error'));
+
 		await auth.logout();
+
 		expect(auth.user).toBeNull();
 	});
 });

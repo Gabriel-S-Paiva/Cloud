@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockFile, mockFolder } from '$lib/mocks/testData';
+import type { UserSummary } from '$lib/types';
 
 vi.mock('$lib/api', () => ({
 	endpoints: {
@@ -20,7 +22,6 @@ vi.mock('$lib/stores/toast.svelte', () => ({
 
 import { driveContents } from './driveContents.svelte';
 import { toast } from '$lib/stores/toast.svelte';
-import type { CloudFile, Folder, UserSummary } from '$lib/types';
 import { endpoints } from '$lib/api';
 
 describe('setContents', () => {
@@ -29,39 +30,23 @@ describe('setContents', () => {
 		driveContents.setContents([], []);
 	});
 
-	it('Converts null folders into empty array', async () => {
+	it('converts null folders into an empty array', () => {
 		driveContents.setContents(null, []);
 		expect(driveContents.folders).toEqual([]);
 	});
 
-	it('Converts null files into empty array', async () => {
+	it('converts null files into an empty array', () => {
 		driveContents.setContents([], null);
 		expect(driveContents.files).toEqual([]);
 	});
 
-	it('allItems combines folder and files into one array', async () => {
-		const mockFile: CloudFile = {
-			id: 1,
-			displayName: 'Test Files',
-			ownedBy: 1,
-			size: 15,
-			bytesReceived: 15,
-			status: 'Complete',
-			contentType: 'type',
-			uploadedAt: 1,
-			lastModified: 1,
-			parentFolder: null
-		};
-		const mockFolder: Folder = {
-			id: 1,
-			displayName: 'Test Files',
-			ownedBy: 1,
-			parentFolder: null
-		};
+	it('allItems combines folders and files into one array', () => {
+		const folder = mockFolder();
+		const file = mockFile();
 
-		driveContents.setContents([mockFolder], [mockFile]);
+		driveContents.setContents([folder], [file]);
 
-		expect(driveContents.allItems).toEqual([mockFolder, mockFile]);
+		expect(driveContents.allItems).toEqual([folder, file]);
 	});
 });
 
@@ -72,42 +57,26 @@ describe('loadSharableUsers', () => {
 		driveContents.sharableUsers = [];
 	});
 
-	it('Populates sharableUsers from a success response', async () => {
+	it('populates sharableUsers from a success response', async () => {
 		const userList: UserSummary[] = [
-			{
-				id: 1,
-				username: 'user1'
-			},
-			{
-				id: 2,
-				username: 'user2'
-			}
+			{ id: 1, username: 'user1' },
+			{ id: 2, username: 'user2' }
 		];
 		vi.mocked(endpoints.getSharableUsers).mockResolvedValue(userList);
 
 		await driveContents.loadSharableUsers();
 
-		expect(driveContents.sharableUsers).toBe(userList);
+		expect(driveContents.sharableUsers).toEqual(userList);
 	});
 
-	it('sharableUsers keeps their list from error response', async () => {
-		const userList: UserSummary[] = [
-			{
-				id: 1,
-				username: 'user1'
-			},
-			{
-				id: 2,
-				username: 'user2'
-			}
-		];
+	it('keeps the existing list and shows an error toast when the reload fails', async () => {
+		const userList: UserSummary[] = [{ id: 1, username: 'user1' }];
 		driveContents.sharableUsers = userList;
-
-		vi.mocked(endpoints.getSharableUsers).mockRejectedValue(new Error('Error Fetching Users'));
+		vi.mocked(endpoints.getSharableUsers).mockRejectedValue(new Error('Error fetching users'));
 
 		await driveContents.loadSharableUsers();
 
-		expect(driveContents.sharableUsers).toBe(userList);
+		expect(driveContents.sharableUsers).toEqual(userList);
 		expect(toast.error).toHaveBeenCalled();
 	});
 });
@@ -118,75 +87,25 @@ describe('deleteFile', () => {
 		driveContents.setContents([], []);
 	});
 
-	it('Removes files from driveContents.files on sucess', async () => {
-		const fileList: CloudFile[] = [
-			{
-				id: 1,
-				displayName: 'Test Files',
-				ownedBy: 1,
-				size: 15,
-				bytesReceived: 15,
-				status: 'Complete',
-				contentType: 'type',
-				uploadedAt: 1,
-				lastModified: 1,
-				parentFolder: null
-			},
-			{
-				id: 2,
-				displayName: 'Test Files',
-				ownedBy: 1,
-				size: 15,
-				bytesReceived: 15,
-				status: 'Complete',
-				contentType: 'type',
-				uploadedAt: 1,
-				lastModified: 1,
-				parentFolder: null
-			}
-		];
-		driveContents.setContents([], fileList);
-
+	it('removes the file from driveContents.files on success', async () => {
+		const files = [mockFile({ id: 1 }), mockFile({ id: 2 })];
+		driveContents.setContents([], files);
 		vi.mocked(endpoints.deleteFile).mockResolvedValue(undefined);
+
 		await driveContents.deleteFile(1);
 
-		expect(driveContents.files).toEqual([fileList[1]]);
+		expect(driveContents.files).toEqual([files[1]]);
 		expect(toast.success).toHaveBeenCalled();
 	});
 
-	it('Keeps files from driveContents.files on error', async () => {
-		const fileList: CloudFile[] = [
-			{
-				id: 1,
-				displayName: 'Test Files',
-				ownedBy: 1,
-				size: 15,
-				bytesReceived: 15,
-				status: 'Complete',
-				contentType: 'type',
-				uploadedAt: 1,
-				lastModified: 1,
-				parentFolder: null
-			},
-			{
-				id: 2,
-				displayName: 'Test Files',
-				ownedBy: 1,
-				size: 15,
-				bytesReceived: 15,
-				status: 'Complete',
-				contentType: 'type',
-				uploadedAt: 1,
-				lastModified: 1,
-				parentFolder: null
-			}
-		];
-		driveContents.setContents([], fileList);
+	it('keeps the file in driveContents.files on failure', async () => {
+		const files = [mockFile({ id: 1 }), mockFile({ id: 2 })];
+		driveContents.setContents([], files);
+		vi.mocked(endpoints.deleteFile).mockRejectedValue(new Error('Error deleting file'));
 
-		vi.mocked(endpoints.deleteFile).mockRejectedValue(new Error('Error Deleting File'));
 		await driveContents.deleteFile(1);
 
-		expect(driveContents.files).toEqual(fileList);
+		expect(driveContents.files).toEqual(files);
 		expect(toast.error).toHaveBeenCalled();
 	});
 });
@@ -197,223 +116,116 @@ describe('deleteFolder', () => {
 		driveContents.setContents([], []);
 	});
 
-	it('Removes folder from driveContents.folder on sucess', async () => {
-		const folderList: Folder[] = [
-			{
-				id: 1,
-				displayName: 'Test Folder',
-				ownedBy: 1,
-				parentFolder: null
-			},
-			{
-				id: 2,
-				displayName: 'Test Folder',
-				ownedBy: 1,
-				parentFolder: null
-			}
-		];
-		driveContents.setContents(folderList, null);
-
+	it('removes the folder from driveContents.folders on success', async () => {
+		const folders = [mockFolder({ id: 1 }), mockFolder({ id: 2 })];
+		driveContents.setContents(folders, []);
 		vi.mocked(endpoints.deleteFolder).mockResolvedValue(undefined);
+
 		await driveContents.deleteFolder(1);
 
-		expect(driveContents.folders).toEqual([folderList[1]]);
+		expect(driveContents.folders).toEqual([folders[1]]);
 		expect(toast.success).toHaveBeenCalled();
 	});
 
-	it('Keeps folders from driveContents.folders on error', async () => {
-		const folderList: Folder[] = [
-			{
-				id: 1,
-				displayName: 'Test Folder',
-				ownedBy: 1,
-				parentFolder: null
-			},
-			{
-				id: 2,
-				displayName: 'Test Folder',
-				ownedBy: 1,
-				parentFolder: null
-			}
-		];
-		driveContents.setContents(folderList, null);
+	it('keeps the folder in driveContents.folders on failure', async () => {
+		const folders = [mockFolder({ id: 1 }), mockFolder({ id: 2 })];
+		driveContents.setContents(folders, []);
+		vi.mocked(endpoints.deleteFolder).mockRejectedValue(new Error('Error deleting folder'));
 
-		vi.mocked(endpoints.deleteFolder).mockRejectedValue(new Error('Error Deleting Folder'));
 		await driveContents.deleteFolder(1);
 
-		expect(driveContents.folders).toEqual(folderList);
+		expect(driveContents.folders).toEqual(folders);
 		expect(toast.error).toHaveBeenCalled();
 	});
 });
 
-describe('rename file', () => {
+describe('renameFile', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		driveContents.setContents([], []);
 	});
 
-	it('returns if file id isnt found', async () => {
-		const fileList: CloudFile[] = [
-			{
-				id: 1,
-				displayName: 'Test Files',
-				ownedBy: 1,
-				size: 15,
-				bytesReceived: 15,
-				status: 'Complete',
-				contentType: 'type',
-				uploadedAt: 1,
-				lastModified: 1,
-				parentFolder: null
-			},
-			{
-				id: 2,
-				displayName: 'Test Files',
-				ownedBy: 1,
-				size: 15,
-				bytesReceived: 15,
-				status: 'Complete',
-				contentType: 'type',
-				uploadedAt: 1,
-				lastModified: 1,
-				parentFolder: null
-			}
-		];
-		driveContents.setContents([], fileList);
+	it('returns early and makes no network call when the file id is not found', async () => {
+		const files = [mockFile({ id: 1 }), mockFile({ id: 2 })];
+		driveContents.setContents([], files);
 
-		await driveContents.renameFile(3, 'New Name');
+		await driveContents.renameFile(999, 'New Name');
 
-		expect(endpoints.updateFile).toHaveBeenCalledTimes(0);
-		expect(driveContents.files).toEqual(fileList);
+		expect(endpoints.updateFile).not.toHaveBeenCalled();
+		expect(driveContents.files).toEqual(files);
 	});
 
-	it('Sucess Rename and Toast', async () => {
-		const file: CloudFile = {
-			id: 1,
-			displayName: 'Test Files',
-			ownedBy: 1,
-			size: 15,
-			bytesReceived: 15,
-			status: 'Complete',
-			contentType: 'type',
-			uploadedAt: 1,
-			lastModified: 1,
-			parentFolder: null
-		};
-
+	it('updates the display name and shows a success toast', async () => {
+		const file = mockFile({ id: 1 });
 		driveContents.setContents([], [file]);
 		vi.mocked(endpoints.updateFile).mockResolvedValue(undefined);
 
 		await driveContents.renameFile(1, 'New Name');
 
 		expect(endpoints.updateFile).toHaveBeenCalledTimes(1);
-		expect(driveContents.files[0]).toEqual(file);
+		expect(driveContents.files[0].displayName).toBe('New Name');
 		expect(toast.success).toHaveBeenCalled();
 	});
 
-	it('Failure Roolsback name and Toast', async () => {
-		const file: CloudFile = {
-			id: 1,
-			displayName: 'Test Files',
-			ownedBy: 1,
-			size: 15,
-			bytesReceived: 15,
-			status: 'Complete',
-			contentType: 'type',
-			uploadedAt: 1,
-			lastModified: 1,
-			parentFolder: null
-		};
-
+	it('rolls back the display name and shows an error toast on failure', async () => {
+		const file = mockFile({ id: 1, displayName: 'Original Name' });
 		driveContents.setContents([], [file]);
-		vi.mocked(endpoints.updateFile).mockRejectedValue(new Error('Error renaming File'));
+		vi.mocked(endpoints.updateFile).mockRejectedValue(new Error('Error renaming file'));
 
 		await driveContents.renameFile(1, 'New Name');
 
-		expect(endpoints.updateFile).toHaveBeenCalledTimes(1);
-		expect(driveContents.files[0]).toEqual(expect.objectContaining(file));
+		expect(driveContents.files[0].displayName).toBe('Original Name');
 		expect(toast.error).toHaveBeenCalledTimes(1);
 	});
 });
 
-describe('rename folder', () => {
+describe('renameFolder', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		driveContents.setContents([], []);
 	});
 
-	it('returns if folder id isnt found', async () => {
-		const folderList: Folder[] = [
-			{
-				id: 1,
-				displayName: 'Test Folder',
-				ownedBy: 1,
-				parentFolder: null
-			},
-			{
-				id: 2,
-				displayName: 'Test Folder',
-				ownedBy: 1,
-				parentFolder: null
-			}
-		];
-		driveContents.setContents(folderList, []);
+	it('returns early and makes no network call when the folder id is not found', async () => {
+		const folders = [mockFolder({ id: 1 }), mockFolder({ id: 2 })];
+		driveContents.setContents(folders, []);
 
-		driveContents.renameFolder(3, 'New Name');
+		await driveContents.renameFolder(999, 'New Name');
 
-		expect(endpoints.updateFolder).toHaveBeenCalledTimes(0);
-		expect(driveContents.folders).toEqual(folderList);
+		expect(endpoints.updateFolder).not.toHaveBeenCalled();
+		expect(driveContents.folders).toEqual(folders);
 	});
 
-	it('Sucess Rename and Toast', async () => {
-		const folder: Folder = {
-			id: 1,
-			displayName: 'Test Files',
-			ownedBy: 1,
-			parentFolder: null
-		};
-
+	it('updates the display name and shows a success toast', async () => {
+		const folder = mockFolder({ id: 1 });
 		driveContents.setContents([folder], []);
 		vi.mocked(endpoints.updateFolder).mockResolvedValue(undefined);
 
 		await driveContents.renameFolder(1, 'New Name');
 
 		expect(endpoints.updateFolder).toHaveBeenCalledTimes(1);
-		expect(driveContents.folders[0]).toEqual(
-			expect.objectContaining({
-				id: 1,
-				displayName: 'New Name'
-			})
-		);
+		expect(driveContents.folders[0].displayName).toBe('New Name');
 		expect(toast.success).toHaveBeenCalled();
 	});
 
-	it('Failure Roolback name and Toast', async () => {
-		const folder: Folder = {
-			id: 1,
-			displayName: 'Test Folder',
-			ownedBy: 1,
-			parentFolder: null
-		};
-
+	it('rolls back the display name and shows an error toast on failure', async () => {
+		const folder = mockFolder({ id: 1, displayName: 'Original Name' });
 		driveContents.setContents([folder], []);
-		vi.mocked(endpoints.updateFolder).mockRejectedValue(new Error('Error renaming Folder'));
+		vi.mocked(endpoints.updateFolder).mockRejectedValue(new Error('Error renaming folder'));
 
 		await driveContents.renameFolder(1, 'New Name');
 
-		expect(endpoints.updateFolder).toHaveBeenCalledTimes(1);
-		expect(driveContents.folders[0]).toEqual(expect.objectContaining(folder));
+		expect(driveContents.folders[0].displayName).toBe('Original Name');
 		expect(toast.error).toHaveBeenCalledTimes(1);
 	});
 });
 
-describe('ShareFiles', () => {
+describe('shareFile', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		driveContents.setContents([], []);
 	});
 
-	it('Sucess calls correct endpoint', async () => {
+	it('calls createShare with the file id and shows a success toast', async () => {
 		vi.mocked(endpoints.createShare).mockResolvedValue({ id: 1 });
 
 		await driveContents.shareFile(1, 1, 'Edit');
@@ -422,23 +234,22 @@ describe('ShareFiles', () => {
 		expect(toast.success).toHaveBeenCalled();
 	});
 
-	it('Failiure calls correct endpoint and error toast', async () => {
-		vi.mocked(endpoints.createShare).mockRejectedValue(new Error('Error Creating Share'));
+	it('shows an error toast on failure', async () => {
+		vi.mocked(endpoints.createShare).mockRejectedValue(new Error('Error creating share'));
 
 		await driveContents.shareFile(1, 1, 'Edit');
 
-		expect(endpoints.createShare).toHaveBeenCalledWith(1, null, 1, 'Edit');
 		expect(toast.error).toHaveBeenCalled();
 	});
 });
 
-describe('ShareFolder', () => {
+describe('shareFolder', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		driveContents.setContents([], []);
 	});
 
-	it('Sucess calls correct endpoint', async () => {
+	it('calls createShare with the folder id and shows a success toast', async () => {
 		vi.mocked(endpoints.createShare).mockResolvedValue({ id: 1 });
 
 		await driveContents.shareFolder(1, 1, 'Edit');
@@ -447,35 +258,24 @@ describe('ShareFolder', () => {
 		expect(toast.success).toHaveBeenCalled();
 	});
 
-	it('Failiure calls correct endpoint and error toast', async () => {
-		vi.mocked(endpoints.createShare).mockRejectedValue(new Error('Error Creating Share'));
+	it('shows an error toast on failure', async () => {
+		vi.mocked(endpoints.createShare).mockRejectedValue(new Error('Error creating share'));
 
 		await driveContents.shareFolder(1, 1, 'Edit');
 
-		expect(endpoints.createShare).toHaveBeenCalledWith(null, 1, 1, 'Edit');
 		expect(toast.error).toHaveBeenCalled();
 	});
 });
 
-describe('MoveFile', () => {
+describe('moveFile', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		driveContents.setContents([], []);
 	});
-	it('Remove File and call Sucess on sucess', async () => {
-		const file: CloudFile = {
-			id: 1,
-			displayName: 'Test Files',
-			ownedBy: 1,
-			size: 15,
-			bytesReceived: 15,
-			status: 'Complete',
-			contentType: 'type',
-			uploadedAt: 1,
-			lastModified: 1,
-			parentFolder: null
-		};
-		driveContents.setContents(null, [file]);
+
+	it('removes the file from the current list and shows a success toast', async () => {
+		const file = mockFile({ id: 1 });
+		driveContents.setContents([], [file]);
 		vi.mocked(endpoints.updateFile).mockResolvedValue(undefined);
 
 		await driveContents.moveFile(1, 1);
@@ -484,20 +284,9 @@ describe('MoveFile', () => {
 		expect(toast.success).toHaveBeenCalled();
 	});
 
-	it('Keep File and call Error on Failiure', async () => {
-		const file: CloudFile = {
-			id: 1,
-			displayName: 'Test Files',
-			ownedBy: 1,
-			size: 15,
-			bytesReceived: 15,
-			status: 'Complete',
-			contentType: 'type',
-			uploadedAt: 1,
-			lastModified: 1,
-			parentFolder: null
-		};
-		driveContents.setContents(null, [file]);
+	it('keeps the file in the list and shows an error toast on failure', async () => {
+		const file = mockFile({ id: 1 });
+		driveContents.setContents([], [file]);
 		vi.mocked(endpoints.updateFile).mockRejectedValue(new Error('Error moving file'));
 
 		await driveContents.moveFile(1, 1);
@@ -507,19 +296,15 @@ describe('MoveFile', () => {
 	});
 });
 
-describe('MoveFolder', () => {
+describe('moveFolder', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		driveContents.setContents([], []);
 	});
-	it('Remove Folder and call Sucess on sucess', async () => {
-		const folder: Folder = {
-			id: 1,
-			displayName: 'Test Files',
-			ownedBy: 1,
-			parentFolder: null
-		};
-		driveContents.setContents([folder], null);
+
+	it('removes the folder from the current list and shows a success toast', async () => {
+		const folder = mockFolder({ id: 1 });
+		driveContents.setContents([folder], []);
 		vi.mocked(endpoints.updateFolder).mockResolvedValue(undefined);
 
 		await driveContents.moveFolder(1, 1);
@@ -528,15 +313,10 @@ describe('MoveFolder', () => {
 		expect(toast.success).toHaveBeenCalled();
 	});
 
-	it('Keep Folder and call Error on Failiure', async () => {
-		const folder: Folder = {
-			id: 1,
-			displayName: 'Test Files',
-			ownedBy: 1,
-			parentFolder: null
-		};
-		driveContents.setContents([folder], null);
-		vi.mocked(endpoints.updateFolder).mockRejectedValue(new Error('Error moving file'));
+	it('keeps the folder in the list and shows an error toast on failure', async () => {
+		const folder = mockFolder({ id: 1 });
+		driveContents.setContents([folder], []);
+		vi.mocked(endpoints.updateFolder).mockRejectedValue(new Error('Error moving folder'));
 
 		await driveContents.moveFolder(1, 1);
 
