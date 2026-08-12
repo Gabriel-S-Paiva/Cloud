@@ -81,8 +81,59 @@ Sketched out the initial entities (`Users`, `Files`, `Shares`) and caught a few 
 
 ---
 
-## Day 3
+## Day 3 - Database Schema, API Design & Backend Foundations
 
+**Time Spent:** 5 hours
+
+**Focus:** Designing the relational database schema, planning REST API endpoints (iterating from v1 to v2), defining API conventions, and starting Go backend implementation.
+
+---
+
+### Database Schema (Entity-Relationship Model)
+
+Closed the initial DB schema design with 5 core tables:
+
+* **`Requests`** — Pre-registration queue (`id`, `username` [unique], `hashed_password`, `status` [approved | pending | rejected]).
+* **`User`** — Main user accounts (`id`, `username` [unique], `hashed_password`, `role` [admin | user], `quota`, `quota_used`).
+* **`Folder`** — Directory hierarchy (`id`, `display_name`, `owned_by` -> `User.id`, `parentFolderId` -> `Folder.id` [nullable]).
+* **`Files`** — Uploaded files metadata (`id`, `display_name`, `owned_by` -> `User.id`, `size`, `uploaded_at`, `last_updated`, `parentFolderId` -> `Folder.id` [nullable]).
+* **`Shares`** — Permission mappings (`id` [artificial primary key], `file_id` [nullable], `folder_id` [nullable], `owned_by` -> `User.id`, `permission` [view | edit], `shared_with` -> `User.id`).
+
+> **Schema Design Insight:** Storing dynamic cross-references for shared items directly was error-prone. Introducing a dedicated artificial primary key `id` on the `Shares` table drastically simplifies backend queries and deletion handling.
+
+---
+
+### API Architecture Iteration (v1 → v2 Refinements)
+
+Mapped out the full RESTful endpoint strategy across **User**, **File/Folder CRUD**, **Sharing**, and **Admin** operations. 
+
+#### Key API v2 Refinements:
+* **Consolidated Updates:** Merged file/folder `Rename` and `Move` endpoints into a single payload driven `PATCH` endpoint using JSON request bodies.
+* **Explicit Sharing Endpoints:** Renamed incoming vs. outgoing share routes for clarity:
+  * Outgoing (shared by me): `GET /shared/me/outgoing`
+  * Incoming (shared with me): `GET /shared/me/incoming`
+* **Simplified Quota Endpoint:** Dropped the standalone `/quota/me` path in favor of nesting storage metadata directly under `GET /users/me`.
+* **Admin Actions:** Finalized administrative user management (`POST /users/requests/{id}/approve`, `POST /users/{id}/clear`, `POST /users/{id}/reset`). Rejected a global drive wipe in favor of scoped per-user clear endpoints.
+
+---
+
+### Project Naming & Style Conventions
+
+Established clear structural conventions across the stack to keep code clean and predictable:
+
+| Context | Style | Example |
+| :--- | :--- | :--- |
+| **JSON Request/Response Bodies** | `camelCase` | `{ "parentFolderId": 12 }` |
+| **URL Paths** | `hyphen-separated` | `/shared/me/outgoing` |
+| **URL Query Parameters** | `hyphen-separated` | `?parent-folder=3` |
+| **Go Code Structure** | `PascalCase` / `camelCase` | `type User struct` |
+
+---
+
+### Backend Execution & Initial Endpoint Implementation
+* **Total Planned Endpoints:** 27
+* **Day 3 Progress:** 2 / 27 completed (`POST /users` user creation request, `GET /users` in progress).
+* **Backend Infrastructure:** Implemented initial Go JSON request body decoding, password hashing middleware, and database connectivity.
 ---
 
 ## Day 4 - Baby Steps & CLI Quick Wins
