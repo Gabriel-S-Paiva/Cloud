@@ -159,3 +159,84 @@ To pass control down the stack, the middleware explicitly calls `next.ServeHTTP(
 ### Targets for Next Time
 - [ ] Implement admin-only routes (e.g., listing pending register requests).
 - [ ] Update `GET /user/me` to read the user identity from the request context provided by the auth middleware.
+
+## Day 7 - Folder Hierarchy & Go SQL Types
+
+**Focus:** Designing the folder system and handling nullable foreign keys in Go.
+
+### Architectural Decision: Folders Before Files
+Even though files are the core deliverable, folder structures had to come first. Since files maintain a reference to their parent folder, the database tables and endpoints for folder management needed to exist before building out upload logic.
+
+---
+
+### Progress & Technical Challenges
+
+* **Go Concept: Handling `NULL` with `sql.NullInt64`**
+  * Root folders don't have a parent ID (they are `NULL` in SQLite). In Go, attempting to scan a `NULL` database value into a standard `int64` variable throws a runtime error.
+  * **Solution:** Used Go's native `sql.NullInt64` type from `database/sql`. It provides a struct containing both `.Int64` (the value) and `.Valid` (a boolean indicating if the field is non-null).
+
+* **Folder Content Retrieval:**
+  * Fetching the contents of a directory required building a unified response struct capable of holding arrays of both `File` structs and `Folder` structs in a single JSON payload for the frontend.
+
+---
+
+### Targets for Next Time
+- [ ] Implement nested folder creation endpoints.
+- [ ] Connect file metadata records to parent folder IDs.
+
+## Day 8 — Go Slices, Late-Night API Grind & Sharing Logic
+
+**Time Spent:** Late night (~2 AM finish)
+
+**Focus:** Clearing out boilerplate endpoints, diving deep into Go slices under the hood, and drafting file sharing queries.
+
+### Go Concept: Arrays vs. Slices & Mutation Side-Effects
+Go arrays are fixed-size, so dynamic collections use **slices**. Under the hood, a slice isn't a direct data container,it's a header struct containing:
+1. A **pointer** to an underlying array
+2. The current **length**
+3. The maximum **capacity**
+
+**The Gotcha:** Because a slice holds a *pointer* to the underlying array, slicing an existing slice doesn't copy the data. Both slices point to the exact same array in memory—meaning mutations in one will mutate the other!
+
+---
+
+### Progress & Brainstorming
+
+* **Boilerplate Cleanup:** Mindlessly ground through standard CRUD/utility endpoints to clear out backend technical debt.
+* **Late-Night Sharing Logic:** Sketched out the SQL joining logic for file access:
+  * *Shared with me:* `WHERE shared_with = session.user_id`
+  * *Files I've shared:* `WHERE owner = session.user_id` (JOIN on `shares` table)
+
+---
+
+### Remaining Backend Checklist
+- [ ] **Quota Bookkeeping:** Update user storage usage on file insert and delete.
+- [ ] **Sharing & Ownership:** Integrate share permissions into ownership validation middleware.
+- [ ] **File I/O:** Real disk read/write stream handling for file uploads & downloads.
+- [ ] **Admin Utilities:** Finish minor administrative endpoints.
+
+*Next up: File I/O stream handling, then onto the Svelte frontend!*
+
+## Day 9 - Quick Handler Polish
+
+**Focus:** Miscellaneous handler cleanup and tightening up route signatures.
+
+* Ground through minor backend handler tweaks to ensure consistency before finalizing API endpoints.
+
+---
+
+## Day 10 - API "Complete", Schema Revisions & Svelte Onboarding
+
+**Focus:** Finalizing the backend, adapting the schema for upload states, and setting up CORS for frontend development.
+
+### Progress & Wins
+* **Upload State Schema Tweaks:** Updated file metadata tables to support asynchronous/chunked file uploads. Added fields to track upload status (e.g., `pending`, `completed`), progress signals, and incoming upload sizes.
+* **CORS Middleware:** Implemented a Cross-Origin Resource Sharing (CORS) middleware on the Go server to prevent cross-origin fetch/XHR blocking when developing the frontend locally on a different port.
+* **Milestone Achieved:** The initial backend API feature set is officially "built"! 🎉
+
+---
+
+### Targets for Next Time (Frontend Phase)
+- [ ] Initialize the Svelte/SvelteKit frontend project.
+- [ ] Set up basic API client fetch wrappers for authentication and session management.
+- [ ] Build the initial login / registration view.
