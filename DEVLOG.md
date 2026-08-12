@@ -240,3 +240,69 @@ Go arrays are fixed-size, so dynamic collections use **slices**. Under the hood,
 - [ ] Initialize the Svelte/SvelteKit frontend project.
 - [ ] Set up basic API client fetch wrappers for authentication and session management.
 - [ ] Build the initial login / registration view.
+
+## Day 11 - Back to Pen and Paper: Wireframing the UI
+
+**Focus:** Designing the multi-pane dashboard layout and user experience flow before committing to code.
+
+### UI/UX Design Session
+Stepped away from the code today to focus on visual hierarchy and workflow. For a project like this (a cloud drive management interface), jumping straight into Svelte/CSS is a recipe for messy re-layouts later.
+
+**Wireframe Notes:**
+* **Dashboard Goal:** Needs a classic, intuitive file manager layout: left sidebar, main file browser grid/list, and a third pane for file details/previews (similar to Windows Explorer or macOS Finder).
+* **Navigation:** Sidebar should handle navigation (My Drive, Shares, Recents) and administrative sections (Users, Approvals).
+* **Core Interaction:** Main panel must support classic drag-and-drop file uploading and intuitive right-click context menus for actions (Rename, Share, Delete).
+
+---
+
+### Initial Sketches
+
+I created two quick sketches today:
+
+1.  **Sketch 1: Main Dashboard Layout** - Roughing out the tripartite layout and responsive behavior.
+    > *[Insert/Link photo of Sketch 1 here, e.g., images/day11_sketch_dashboard.png]*
+
+2.  **Sketch 2: Login And Register** - some quick form work.
+    > *[Insert/Link photo of Sketch 2 here, e.g., images/day11_sketch_upload_mgmt.png]*
+
+---
+
+### Targets for Next Time (Frontend Build Phase)
+- [ ] Initialize the Svelte/SvelteKit frontend project.
+- [ ] Implement the base CSS layout/grid system derived from today's sketches.
+- [ ] Build the initial login / registration views.
+
+## Day 12 - Rescuing Legacy Hardware & A Code-First Learning Plan
+
+**Focus:** Rescuing lost photos off legacy hardware, followed by structuring a non-traditional frontend learning workflow.
+
+### The Side Quest: Legacy Hardware Recovery Mission
+Wasted most of my day and brainpower fighting an ancient tablet to rescue old childhood photos before the device died for good.
+
+* **The Constraints:** No working web browser, no Bluetooth, no USB support, and all legacy share methods were dead.
+* **The Hack:** 
+  1. Spun up a mini HTTP file share on my phone so the tablet could download a file manager APK over Wi-Fi.
+  2. Used the APK to launch a remote manager on the tablet.
+  3. Connected the tablet to a PC over an FTP server via a phone hotspot (bypassing router security) to finally pull all the photos off safely.
+
+By the time the photos were backed up, I was completely exhausted. I shifted to light planning so the day wasn't a total wash.
+
+---
+
+### Frontend Strategy: Code-First Learning Pipeline
+Normally, I'd draft a happy path, build Figma designs, and then write code. But since **learning Svelte** is a primary objective, I'm flipping the sequence to avoid juggling framework learning, architecture, and visual design all at once:
+
+1. **Phase 1: Pure Code (Raw Functionality)**
+   * Get features working first with raw HTML. No styling distractions.
+2. **Phase 2: Architecture & Refactoring**
+   * Organize the working code into clean components so I can leave the project for 6 months and come back without getting lost.
+3. **Phase 3: Visual Design & Styling**
+   * Coat the raw, working application in a clean layer of Tailwind CSS.
+
+---
+
+### Breaking Down Phase 1 (Pure Code Objectives)
+- [ ] **Folder Routing:** Implement route parameters for navigating folder hierarchies.
+- [ ] **Data Fetching:** Wire up backend API calls to Svelte state/stores.
+- [ ] **Rendering:** Display raw directory contents and metadata lists.
+- [ ] **Navigation:** Build forward/back/up directory traversal logic.
