@@ -173,7 +173,9 @@ func (s *Store) DeleteFile(ctx context.Context, id int) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	var userID int
 	var fileSize int64

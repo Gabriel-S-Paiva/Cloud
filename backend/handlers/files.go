@@ -53,7 +53,9 @@ func (h *FileHanlder) CreateFile(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]int64{"id": id})
+	if err := json.NewEncoder(w).Encode(map[string]int64{"id": id}); err != nil {
+		log.Printf("failed to encode response: %v", err)
+	}
 }
 
 func (h *FileHanlder) UploadChunk(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +90,9 @@ func (h *FileHanlder) UploadChunk(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]int64{"bytesWritten": written})
+	if err := json.NewEncoder(w).Encode(map[string]int64{"bytesWritten": written}); err != nil {
+		log.Printf("failed to encode response: %v", err)
+	}
 }
 
 func (h *FileHanlder) GetFile(w http.ResponseWriter, r *http.Request) {

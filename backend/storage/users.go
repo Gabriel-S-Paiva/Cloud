@@ -59,7 +59,9 @@ func (s *Store) AproveRequest(ctx context.Context, id int) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	var user User
 	err = tx.QueryRowContext(ctx, "SELECT username, hashed_password FROM Requests WHERE id = ?", id).Scan(&user.Username, &user.Password)
