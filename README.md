@@ -86,17 +86,20 @@ This builds and runs two containers — the Go backend and a Caddy container ser
 
 ## Project status
 
-This is an active, evolving personal project, not production software. Current state:
+**v1.0.0** — feature-complete for personal/family use and running in production on my own home server. Current state:
 
 - ✅ Core features working end-to-end (auth, folders, files, sharing, quotas, admin)
 - ✅ Deployed to a home server (Docker Compose + Caddy, LAN-first)
-- ✅ Automated tests (missing frontend testing)
-- ✅ CI/CD
-- 🚧 More tools for Drive managing
+- ✅ Automated tests: backend storage + full HTTP integration tests (`go test`), frontend store tests (Vitest)
+- ✅ CI/CD: vet, lint (`golangci-lint`), vulnerability scanning (`govulncheck`), build, test, and auto-deploy on merge to `main`
+- ✅ Per-IP rate limiting on login/registration
+- ✅ Dependabot for Go, npm, Docker, and Actions dependencies
+- 🚧 More tools for drive management (bulk actions, search, previews)
 
 **Planned next:**
-- **v3** → Vitest (frontend tests) + GitHub Actions CI/CD
-- **v2** → feature layer on top, including JWT auth support
+- HTTPS end-to-end via Cloudflare Tunnel (currently LAN-only over HTTP)
+- v2 → JWT auth support, primarily to make a future mobile client viable
+- Broader storage-layer test coverage as new features land
 
 ## Build log
 
