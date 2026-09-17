@@ -94,9 +94,12 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Deploy Application
+        env:
+          GOPROXY: "https://proxy.golang.org,direct"
         run: |
           cd ~/Cloud
           git pull origin main
           docker compose down
-          docker compose up -d --build
+          docker compose build --build-arg GOPROXY="https://proxy.golang.org,direct"
+          docker compose up -d
           echo "Deployment complete!"
