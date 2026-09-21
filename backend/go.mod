@@ -1,6 +1,6 @@
 module backend
 
-go 1.26.5
+go 1.27.1
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
