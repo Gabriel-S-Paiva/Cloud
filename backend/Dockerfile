@@ -1,6 +1,8 @@
-FROM golang:1.26-alpine AS builder
+FROM golang:1.27.1-alpine AS builder
 WORKDIR /src
 COPY backend/go.mod backend/go.sum ./backend/
+ARG GOPROXY=https://proxy.golang.org,direct
+ENV GOPROXY=$GOPROXY
 RUN cd backend && go mod download
 COPY backend ./backend
 COPY migration ./migration

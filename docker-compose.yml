@@ -3,26 +3,33 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+      args:
+        GOPROXY: "https://proxy.golang.org,direct"
     env_file:
       - backend/.env
     volumes:
       - backend_data:/app/backend/data
     restart: unless-stopped
-    networks: [internal]
+    networks:
+      - internal
 
   caddy:
     build:
       context: .
       dockerfile: frontend/Dockerfile
-    ports:
-      - "80:80"
     depends_on:
       - backend
     restart: unless-stopped
-    networks: [internal]
+    networks:
+      internal:
+      global-web:
+        aliases:
+          - cloud-web
 
 volumes:
   backend_data:
 
 networks:
   internal:
+  global-web:
+    external: true
